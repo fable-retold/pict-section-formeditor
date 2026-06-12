@@ -200,8 +200,28 @@ class FormEditorManifestOps extends libPictProvider
 			// the pattern {SectionHash}_G{...}.  If the user has overridden
 			// a group hash the "_G" prefix after the old section hash will
 			// no longer be present, so it is skipped.
+			//
+			// The rename must also cascade into the Descriptors: inputs are
+			// attached to their section/group by PictForm.Section and
+			// PictForm.Group hash references.  Without this, a section
+			// rename orphans every input in the section (they vanish from
+			// the editor and end up misattached in the saved manifest).
 			if (pProperty === 'Hash' && tmpOldValue !== pValue && Array.isArray(tmpSection.Groups))
 			{
+				// Re-point Descriptors at the new section hash
+				if (tmpManifest.Descriptors && typeof tmpManifest.Descriptors === 'object')
+				{
+					let tmpDescriptorKeys = Object.keys(tmpManifest.Descriptors);
+					for (let i = 0; i < tmpDescriptorKeys.length; i++)
+					{
+						let tmpDescriptor = tmpManifest.Descriptors[tmpDescriptorKeys[i]];
+						if (tmpDescriptor && tmpDescriptor.PictForm && tmpDescriptor.PictForm.Section === tmpOldValue)
+						{
+							tmpDescriptor.PictForm.Section = pValue;
+						}
+					}
+				}
+
 				let tmpOldPrefix = tmpOldValue + '_G';
 				let tmpNewPrefix = pValue + '_G';
 				for (let i = 0; i < tmpSection.Groups.length; i++)
@@ -209,7 +229,9 @@ class FormEditorManifestOps extends libPictProvider
 					let tmpGroup = tmpSection.Groups[i];
 					if (tmpGroup.Hash && tmpGroup.Hash.indexOf(tmpOldPrefix) === 0)
 					{
+						let tmpOldGroupHash = tmpGroup.Hash;
 						tmpGroup.Hash = tmpNewPrefix + tmpGroup.Hash.substring(tmpOldPrefix.length);
+						this._repointDescriptorGroupReferences(tmpManifest, pValue, tmpOldGroupHash, tmpGroup.Hash);
 					}
 				}
 			}
@@ -331,7 +353,45 @@ class FormEditorManifestOps extends libPictProvider
 		let tmpGroup = tmpSection.Groups[pGroupIndex];
 		if (tmpGroup)
 		{
+			let tmpOldValue = tmpGroup[pProperty];
 			tmpGroup[pProperty] = pValue;
+
+			// When the group Hash changes, cascade into the Descriptors —
+			// inputs are attached to their group by the PictForm.Group hash
+			// reference.  Without this, a group rename orphans every input
+			// in the group.
+			if (pProperty === 'Hash' && tmpOldValue && tmpOldValue !== pValue)
+			{
+				this._repointDescriptorGroupReferences(tmpManifest, tmpSection.Hash || '', tmpOldValue, pValue);
+			}
+		}
+	}
+
+	/**
+	 * Re-point all Descriptors in a section from one group hash to another.
+	 *
+	 * @param {object} pManifest - The manifest containing the Descriptors
+	 * @param {string} pSectionHash - The section hash the descriptors belong to
+	 * @param {string} pOldGroupHash - The group hash to replace
+	 * @param {string} pNewGroupHash - The new group hash
+	 */
+	_repointDescriptorGroupReferences(pManifest, pSectionHash, pOldGroupHash, pNewGroupHash)
+	{
+		if (!pManifest || !pManifest.Descriptors || typeof pManifest.Descriptors !== 'object' || pOldGroupHash === pNewGroupHash)
+		{
+			return;
+		}
+
+		let tmpDescriptorKeys = Object.keys(pManifest.Descriptors);
+		for (let i = 0; i < tmpDescriptorKeys.length; i++)
+		{
+			let tmpDescriptor = pManifest.Descriptors[tmpDescriptorKeys[i]];
+			if (tmpDescriptor && tmpDescriptor.PictForm
+				&& tmpDescriptor.PictForm.Section === pSectionHash
+				&& tmpDescriptor.PictForm.Group === pOldGroupHash)
+			{
+				tmpDescriptor.PictForm.Group = pNewGroupHash;
+			}
 		}
 	}
 
@@ -1433,6 +1493,72 @@ class FormEditorManifestOps extends libPictProvider
 				this._reindexGroupRows(i, j);
 			}
 		}
+	}
+
+	/**
+	 * Rename a key in a Descriptors map while preserving its position in the
+	 * key insertion order.
+	 *
+	 * Rows and intra-row input ordering (and submanifest column ordering) are
+	 * derived from Object.keys() insertion order, so a naive
+	 * `map[pNewKey] = map[pOldKey]; delete map[pOldKey]` moves the entry to
+	 * the end of the map and visibly "shuffles" the form.  Worse, any code
+	 * that identifies inputs positionally (the Form Overview tree and the
+	 * properties panel selection both do) will then resolve stale indexes to
+	 * the wrong Descriptor and cross-write Names/Hashes between fields.
+	 *
+	 * The map is mutated in place so existing references remain valid.
+	 *
+	 * @param {object} pDescriptors - The Descriptors map (manifest or reference manifest)
+	 * @param {string} pOldKey - The key to rename
+	 * @param {string} pNewKey - The new key
+	 * @return {boolean} true if the rename happened (or was a no-op);
+	 *         false if it could not be performed safely (missing source key,
+	 *         empty target key, or a collision with another existing key).
+	 */
+	renameDescriptorKey(pDescriptors, pOldKey, pNewKey)
+	{
+		if (!pDescriptors || typeof pDescriptors !== 'object' || typeof pOldKey !== 'string' || typeof pNewKey !== 'string' || pNewKey.length < 1)
+		{
+			return false;
+		}
+		if (pNewKey === pOldKey)
+		{
+			return true;
+		}
+		if (!Object.prototype.hasOwnProperty.call(pDescriptors, pOldKey))
+		{
+			return false;
+		}
+		if (Object.prototype.hasOwnProperty.call(pDescriptors, pNewKey))
+		{
+			// Collision with a different existing Descriptor — never overwrite it.
+			return false;
+		}
+
+		let tmpKeys = Object.keys(pDescriptors);
+
+		// Snapshot the entries, then rebuild the map in place with the
+		// renamed key occupying the old key's position.
+		let tmpEntries = {};
+		for (let i = 0; i < tmpKeys.length; i++)
+		{
+			tmpEntries[tmpKeys[i]] = pDescriptors[tmpKeys[i]];
+			delete pDescriptors[tmpKeys[i]];
+		}
+		for (let i = 0; i < tmpKeys.length; i++)
+		{
+			if (tmpKeys[i] === pOldKey)
+			{
+				pDescriptors[pNewKey] = tmpEntries[pOldKey];
+			}
+			else
+			{
+				pDescriptors[tmpKeys[i]] = tmpEntries[tmpKeys[i]];
+			}
+		}
+
+		return true;
 	}
 
 	/**

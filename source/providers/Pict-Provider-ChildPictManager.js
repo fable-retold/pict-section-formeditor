@@ -111,6 +111,18 @@ class ChildPictManager extends libPictProvider
 
 			let tmpChildPict = new libPict(tmpChildPictSettings);
 
+			// Disable CSS injection on the child pict so it does not
+			// overwrite the parent's shared #PICT-CSS style element.
+			// This child is only used headlessly (e.g. expression
+			// tokenizing/linting) and is never rendered, so it has no
+			// need to inject CSS.  Without this guard, the child's
+			// CSSMap.injectCSS() clobbers the form editor's stylesheet on
+			// first use, stripping all styling from the page.
+			if (tmpChildPict.CSSMap)
+			{
+				tmpChildPict.CSSMap.injectCSS = function() {};
+			}
+
 			this._PictCache[tmpFormHash] = tmpChildPict;
 
 			tmpChildPict.addApplication(tmpFormHash, {}, libPictCustomApplication);

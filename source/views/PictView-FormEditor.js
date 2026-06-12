@@ -807,13 +807,20 @@ class PictViewFormEditor extends libPictView
 			}
 			else if (pField === 'Address')
 			{
-				// Move the Descriptor to the new key in the Descriptors map
+				// Move the Descriptor to the new key in the Descriptors map.
+				// The rename must preserve key insertion order: rows and
+				// intra-row input order are derived from Descriptors key
+				// order, and the overview tree is intentionally not
+				// re-rendered on commit — a re-key that shifts ordering makes
+				// every subsequent positional commit in this tree write into
+				// the wrong Descriptor (fields appear to "shuffle").
 				if (pValue !== tmpAddress && pValue.length > 0)
 				{
-					tmpManifest.Descriptors[pValue] = tmpDescriptor;
-					delete tmpManifest.Descriptors[tmpAddress];
-					// Update the DataAddress property on the descriptor itself
-					tmpDescriptor.DataAddress = pValue;
+					if (this._ManifestOpsProvider.renameDescriptorKey(tmpManifest.Descriptors, tmpAddress, pValue))
+					{
+						// Update the DataAddress property on the descriptor itself
+						tmpDescriptor.DataAddress = pValue;
+					}
 				}
 			}
 		}
@@ -858,10 +865,15 @@ class PictViewFormEditor extends libPictView
 			{
 				if (pValue !== tmpColAddr && pValue.length > 0)
 				{
-					// Rename the Descriptor key in the ReferenceManifest
-					tmpRefManifest.Descriptors[pValue] = tmpColDesc;
-					delete tmpRefManifest.Descriptors[tmpColAddr];
-					tmpColDesc.Hash = pValue;
+					// Rename the Descriptor key in the ReferenceManifest,
+					// preserving key order — column identity and ordering are
+					// positional (Object.keys insertion order), so an
+					// order-shifting re-key cross-writes subsequent column
+					// edits into the wrong column.
+					if (this._ManifestOpsProvider.renameDescriptorKey(tmpRefManifest.Descriptors, tmpColAddr, pValue))
+					{
+						tmpColDesc.Hash = pValue;
+					}
 				}
 				else
 				{

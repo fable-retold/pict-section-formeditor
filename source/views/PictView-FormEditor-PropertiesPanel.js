@@ -3547,11 +3547,14 @@ class PictViewFormEditorPropertiesPanel extends libPictView
 
 		let tmpManifest = tmpResolved.Manifest;
 
-		// Re-key the Descriptor in the Descriptors map
-		if (tmpManifest.Descriptors)
+		// Re-key the Descriptor in the Descriptors map, preserving key
+		// insertion order.  Input ordering and the panel's positional
+		// selection (_SelectedInput indexes) are both derived from key
+		// order, so an order-shifting re-key silently re-targets the panel
+		// at a different input and shuffles the row.
+		if (!tmpManifest.Descriptors || !this._ParentFormEditor._ManifestOpsProvider.renameDescriptorKey(tmpManifest.Descriptors, tmpOldAddress, tmpNewAddress))
 		{
-			tmpManifest.Descriptors[tmpNewAddress] = tmpManifest.Descriptors[tmpOldAddress];
-			delete tmpManifest.Descriptors[tmpOldAddress];
+			return;
 		}
 
 		// Update the address in the Row.Inputs array
@@ -3620,11 +3623,13 @@ class PictViewFormEditorPropertiesPanel extends libPictView
 
 		let tmpManifest = pResolved.Manifest;
 
-		// Re-key the Descriptor in the Descriptors map
-		if (tmpManifest.Descriptors && tmpManifest.Descriptors[tmpOldAddress])
+		// Re-key the Descriptor in the Descriptors map, preserving key
+		// insertion order so the re-keyed input keeps its position in the
+		// row (input ordering and positional selection both derive from
+		// Descriptors key order).
+		if (!tmpManifest.Descriptors || !this._ParentFormEditor._ManifestOpsProvider.renameDescriptorKey(tmpManifest.Descriptors, tmpOldAddress, tmpNewAddress))
 		{
-			tmpManifest.Descriptors[tmpNewAddress] = tmpManifest.Descriptors[tmpOldAddress];
-			delete tmpManifest.Descriptors[tmpOldAddress];
+			return;
 		}
 
 		// Update the address in the Row.Inputs array
@@ -3636,10 +3641,6 @@ class PictViewFormEditorPropertiesPanel extends libPictView
 			{
 				tmpRow.Inputs[tmpIdx] = tmpNewAddress;
 			}
-
-			// Restore Descriptors key order to match Row.Inputs so the
-			// re-keyed input does not jump to the end of the row.
-			this._ParentFormEditor._ManifestOpsProvider._reorderDescriptorsForRow(tmpRow.Inputs);
 		}
 	}
 
@@ -8192,9 +8193,12 @@ class PictViewFormEditorPropertiesPanel extends libPictView
 
 		let tmpRefManifest = tmpResolved.RefManifest;
 
-		// Re-key in the ReferenceManifest's Descriptors
-		tmpRefManifest.Descriptors[tmpNewAddress] = tmpRefManifest.Descriptors[tmpOldAddress];
-		delete tmpRefManifest.Descriptors[tmpOldAddress];
+		// Re-key in the ReferenceManifest's Descriptors, preserving key
+		// order — column ordering is derived from key insertion order.
+		if (!this._ParentFormEditor._ManifestOpsProvider.renameDescriptorKey(tmpRefManifest.Descriptors, tmpOldAddress, tmpNewAddress))
+		{
+			return;
+		}
 
 		// Update the selection to the new address
 		this._SelectedTabularColumn.ColumnAddress = tmpNewAddress;
