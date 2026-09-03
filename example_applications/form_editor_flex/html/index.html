@@ -31,9 +31,9 @@
 			.pict-fe-selector-btn:hover { background: #C45A3E; }
 
 			/* --- Info Banner --- */
-			.pict-example-info { background: var(--theme-color-background-panel, #fff); border: 1px solid #D4A373; border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.6; color: var(--theme-color-text-primary, #3D3229); }
-			.pict-example-info h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; color: #9E6B47; }
-			.pict-example-info code { background: #F5F0E8; padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.8rem; }
+			.pict-example-info { background: var(--ex-surface); border: 1px solid var(--ex-border); border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.6; color: var(--ex-page-fg); }
+			.pict-example-info h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; color: var(--ex-accent); }
+			.pict-example-info code { background: var(--ex-page-bg); color: var(--ex-page-fg); padding: 0.15em 0.4em; border-radius: 3px; font-size: 0.8rem; }
 					/* --- Theme mode toggle -------------------------------------------
 			   The example page chrome carries its own light/dark values keyed on
 			   the same three signals the module responds to. The branded header
@@ -45,6 +45,7 @@
 				--ex-page-fg:    #264653;
 				--ex-surface:    #FFFCF7;
 				--ex-border:     #D4C4A8;
+				--ex-accent:     #9E6B47;
 			}
 			[data-theme="dark"],
 			.theme-dark
@@ -53,6 +54,7 @@
 				--ex-page-fg:    #E6E9EE;
 				--ex-surface:    #242B36;
 				--ex-border:     #3A4250;
+				--ex-accent:     #C89A76;
 			}
 			@media (prefers-color-scheme: dark)
 			{
@@ -62,6 +64,7 @@
 					--ex-page-fg: #E6E9EE;
 					--ex-surface: #242B36;
 					--ex-border:  #3A4250;
+					--ex-accent:  #C89A76;
 				}
 			}
 			.pict-example-theme { display: flex; align-items: center; padding: 0 0.75rem 0 0; }
