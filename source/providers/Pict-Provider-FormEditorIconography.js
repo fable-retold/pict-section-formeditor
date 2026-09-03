@@ -32,17 +32,23 @@ const _DefaultProviderConfiguration = (
 	// Stroke width for all line-based icons (relative to a 24x24 viewbox)
 	StrokeWidth: 1.5,
 
-	// Color tokens (consumers can override to match their theme)
+	// Color tokens (consumers can override to match their theme).
+	//
+	// These land in SVG presentation attributes (fill= / stroke=), which accept
+	// var() substitutions, so icons follow the active theme with no re-render.
+	// Each resolves through a --pfe-* alias declared in the view CSS and is
+	// therefore mode-aware; Primary was a bare '#3D3229' that no host theme and
+	// no dark mode could reach, leaving icon outlines near-black on dark panels.
 	Colors:
 	{
 		// Primary stroke/fill for structural icons
-		Primary: '#3D3229',
+		Primary: 'var(--pfe-icon-primary)',
 		// Secondary stroke for accents
-		Accent: 'var(--theme-color-brand-primary, #9E6B47)',
+		Accent: 'var(--pfe-text-brand)',
 		// Muted color for subtle elements
-		Muted: 'var(--theme-color-text-muted, #B0A89E)',
+		Muted: 'var(--pfe-text-muted)',
 		// Lighter fill for backgrounds inside icons
-		Fill: 'var(--theme-color-background-secondary, #F5F0E8)'
+		Fill: 'var(--pfe-bg-secondary)'
 	}
 });
 
@@ -50,10 +56,20 @@ class PictProviderFormEditorIconography
 {
 	constructor(pOptions)
 	{
-		// Merge default config with passed options
-		this.options = Object.assign({},
-			JSON.parse(JSON.stringify(_DefaultProviderConfiguration)),
-			pOptions);
+		// Merge default config with passed options.
+		//
+		// Colors merges one level deeper than the rest: a purely top-level
+		// Object.assign lets a consumer passing { Colors: { Primary: X } }
+		// silently drop Accent / Muted / Fill, leaving those icon parts
+		// unpainted. Every other option is a scalar or a whole-value
+		// replacement, for which the shallow merge is correct.
+		let tmpDefaults = JSON.parse(JSON.stringify(_DefaultProviderConfiguration));
+		let tmpOptions = Object.assign({}, tmpDefaults, pOptions);
+		if (pOptions && pOptions.Colors)
+		{
+			tmpOptions.Colors = Object.assign({}, tmpDefaults.Colors, pOptions.Colors);
+		}
+		this.options = tmpOptions;
 
 		// Internal icon registries, keyed by category then variant name
 		// Each entry is a function(pSize, pColors) that returns an SVG string
@@ -802,8 +818,8 @@ class PictProviderFormEditorIconography
 			return _svg(pSize,
 				'<circle cx="12" cy="12" r="9" fill="' + pColors.Fill + '" stroke="' + pColors.Primary + '" stroke-width="' + pSW + '"/>' +
 				'<circle cx="12" cy="8" r="2.5" fill="' + pColors.Accent + '"/>' +
-				'<circle cx="8.5" cy="14" r="2.5" fill="var(--theme-color-status-success, #6B7F5A)"/>' +
-				'<circle cx="15.5" cy="14" r="2.5" fill="#5A6B7F"/>');
+				'<circle cx="8.5" cy="14" r="2.5" fill="var(--pfe-data-3)"/>' +
+				'<circle cx="15.5" cy="14" r="2.5" fill="var(--pfe-data-9)"/>');
 		};
 
 		// DisplayOnly — eye icon

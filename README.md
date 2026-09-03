@@ -14,6 +14,7 @@ A visual editor for [pict-section-form](https://github.com/fable-retold/pict-sec
 - **Embedded Help** -- Context-sensitive documentation for all 127+ solver functions, input types, and editor features
 - **Input Type Picker** -- Browse all available pict-section-form input types organized by category
 - **Display Modes** -- Toggle between human-readable names and manifest hash identifiers
+- **Light / Dark Theming** -- Ships both appearances, follows the OS or the host's `data-theme`, and adopts the host palette when one is defined
 
 ## Installation
 
@@ -99,6 +100,39 @@ The editor works with standard pict-section-form manifests:
 }
 ```
 
+## Theming
+
+The editor ships a complete light **and** dark appearance and adopts the host
+application's palette when one is present.
+
+```html
+<!-- follows the OS setting with no configuration -->
+<html>
+
+<!-- or drive it explicitly -->
+<html data-theme="dark">
+<html class="theme-dark">
+```
+
+Define any of the ecosystem's `--theme-color-*` tokens on `:root` and the
+editor picks them up:
+
+```css
+:root
+{
+    --theme-color-background-panel: #ffffff;
+    --theme-color-text-primary:     #1f2733;
+    --theme-color-brand-primary:    #156dd1;
+}
+```
+
+Every colour resolves through a `--pfe-*` alias that consults the host token
+first and falls back to a mode-appropriate value, so partial overrides work and
+nothing has to be defined for the editor to look right.
+
+See **[docs/theming.md](docs/theming.md)** for the full token list, the alias
+naming convention, icon colour overrides, and notes on maintaining the layer.
+
 ## Running the Example Application
 
 ```bash
@@ -107,6 +141,9 @@ npm install
 npx quack build
 # Open html/index.html in a browser
 ```
+
+The example header carries a light / dark / system toggle, so the theming can
+be exercised without a host application.
 
 ## Building
 
