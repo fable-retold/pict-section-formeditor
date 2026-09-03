@@ -2192,26 +2192,40 @@ module.exports = (
 	border: none;
 	border-radius: 0;
 }
-/* Warm palette overrides to match form editor */
-.pict-fe-solver-code-editor-container .pict-code-editor
+/* Warm palette overrides to match form editor.
+   pict-section-code styles this surface with its own
+   .pict-code-editor-wrap .X selectors, which tie with a bare
+   .pict-fe-solver-code-editor-container .X on specificity and win on source
+   order. Naming the wrap class here keeps these one class ahead, so they land
+   without reaching for !important. */
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor
 {
 	background: var(--pfe-bg-panel);
 	color: var(--pfe-text-primary);
 	caret-color: var(--pfe-caret-brand);
 	font-size: 13px;
 }
-.pict-fe-solver-code-editor-container .pict-code-line-numbers
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-line-numbers
 {
 	background: var(--pfe-bg-secondary);
 	border-right-color: var(--pfe-border-on-bg-tertiary);
 	color: var(--pfe-text-muted);
 }
 /* Syntax highlighting token colors for solver DSL */
-.pict-fe-solver-code-editor-container .keyword { color: var(--pfe-syntax-keyword); font-weight: 600; }
-.pict-fe-solver-code-editor-container .string { color: var(--pfe-syntax-string); }
-.pict-fe-solver-code-editor-container .number { color: var(--pfe-syntax-number); }
-.pict-fe-solver-code-editor-container .property { color: var(--pfe-syntax-property); }
-.pict-fe-solver-code-editor-container .operator { color: var(--pfe-syntax-operator); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .keyword { color: var(--pfe-syntax-keyword); font-weight: 600; }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .string { color: var(--pfe-syntax-string); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .number { color: var(--pfe-syntax-number); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .property { color: var(--pfe-syntax-property); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .operator { color: var(--pfe-syntax-operator); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .comment { color: var(--pfe-syntax-comment); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .punctuation { color: var(--pfe-syntax-punctuation); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .function-name { color: var(--pfe-syntax-function); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .attr-name { color: var(--pfe-syntax-attrname); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .attr-value { color: var(--pfe-syntax-attrvalue); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .builtin { color: var(--pfe-syntax-number); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .tag { color: var(--pfe-syntax-tag); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .type { color: var(--pfe-syntax-keyword); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .variable { color: var(--pfe-syntax-variable); }
 .pict-fe-solver-modal-ordinal-row
 {
 	display: flex;
