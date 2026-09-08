@@ -4745,5 +4745,228 @@ suite
 				);
 			}
 		);
+		suite
+		(
+			'Theming',
+			function ()
+			{
+				// The token layer is the block of --pfe-* alias declarations at the
+				// top of the view CSS; everything after it is ordinary rules. Several
+				// assertions below need to look at one or the other in isolation.
+				let fSplitCSS = function ()
+				{
+					let tmpCSS = libPictSectionFormEditor.default_configuration.CSS;
+					let tmpStart = tmpCSS.indexOf('/* ═');
+					let tmpMedia = tmpCSS.indexOf('@media (prefers-color-scheme: dark)', tmpStart);
+					let tmpInner = tmpCSS.indexOf('\n\t}\n', tmpMedia);
+					let tmpEnd = tmpCSS.indexOf('\n}\n', tmpInner) + 3;
+					return { Layer: tmpCSS.slice(tmpStart, tmpEnd), Rules: tmpCSS.slice(tmpEnd), All: tmpCSS };
+				};
+
+				// Alias declarations, split into the three mode blocks.
+				let fAliasBlocks = function ()
+				{
+					let tmpLayer = fSplitCSS().Layer;
+					let tmpParts = tmpLayer.split(/(?=\[data-theme="dark"\]|@media)/);
+					return tmpParts.map(
+						function (pPart)
+						{
+							let tmpSet = {};
+							let tmpMatch;
+							let tmpExpression = /--pfe-([a-z0-9-]+)\s*:/g;
+							while ((tmpMatch = tmpExpression.exec(pPart)) !== null) { tmpSet[tmpMatch[1]] = true; }
+							return tmpSet;
+						});
+				};
+
+				test
+				(
+					'Should declare all three dark-mode signals',
+					function ()
+					{
+						let tmpLayer = fSplitCSS().Layer;
+
+						// Bulma / HeadLight drive an attribute; pict-provider-theme
+						// drives a class; neither is set when the user leaves the
+						// choice to the OS, which the media query covers.
+						Expect(tmpLayer).to.contain('[data-theme="dark"]');
+						Expect(tmpLayer).to.contain('.theme-dark');
+						Expect(tmpLayer).to.contain('@media (prefers-color-scheme: dark)');
+
+						// The OS branch must yield to an explicit light choice, or a
+						// user who picked light on a dark-mode machine gets dark.
+						Expect(tmpLayer).to.contain(':root:not([data-theme="light"])');
+					}
+				);
+				test
+				(
+					'Should declare every alias in the light block and in both dark blocks',
+					function ()
+					{
+						let tmpBlocks = fAliasBlocks();
+						Expect(tmpBlocks.length).to.equal(3);
+
+						let tmpLight = Object.keys(tmpBlocks[0]);
+						Expect(tmpLight.length).to.be.greaterThan(0);
+
+						// An alias declared for light but missing from a dark block
+						// silently keeps its light value in dark mode -- no error, no
+						// warning, just a light-coloured element on a dark panel.
+						let tmpMissing = tmpLight.filter(
+							function (pAlias) { return !tmpBlocks[1][pAlias] || !tmpBlocks[2][pAlias]; });
+						Expect(tmpMissing, 'aliases missing a dark value: ' + tmpMissing.join(', ')).to.deep.equal([]);
+					}
+				);
+				test
+				(
+					'Should declare every alias that any rule references',
+					function ()
+					{
+						let tmpSplit = fSplitCSS();
+						let tmpDeclared = fAliasBlocks()[0];
+
+						let tmpUsed = {};
+						let tmpMatch;
+						let tmpExpression = /var\(\s*--pfe-([a-z0-9-]+)\s*\)/g;
+						while ((tmpMatch = tmpExpression.exec(tmpSplit.Rules)) !== null) { tmpUsed[tmpMatch[1]] = true; }
+
+						// This is the failure mode with no symptom: var(--pfe-typo)
+						// resolves to nothing and the property is simply dropped.
+						let tmpUndeclared = Object.keys(tmpUsed).filter(
+							function (pAlias) { return !tmpDeclared[pAlias]; });
+						Expect(tmpUndeclared, 'referenced but never declared: ' + tmpUndeclared.join(', ')).to.deep.equal([]);
+					}
+				);
+				test
+				(
+					'Should route every rule colour through an alias rather than a literal',
+					function ()
+					{
+						let tmpRules = fSplitCSS().Rules;
+
+						// Strip var(...) spans first: the alias layer legitimately holds
+						// literals, and so do the fallbacks inside any var() that remains.
+						let tmpOffenders = tmpRules.split('\n').filter(
+							function (pLine)
+							{
+								let tmpStripped = pLine.replace(/var\(\s*--[a-z0-9-]+\s*(,[^()]*)?\)/g, '');
+								return (/#[0-9a-fA-F]{3,8}\b|rgba?\(\s*[0-9]/).test(tmpStripped);
+							});
+
+						Expect(tmpOffenders, 'hardcoded colours: ' + tmpOffenders.join(' | ')).to.deep.equal([]);
+					}
+				);
+				test
+				(
+					'Should keep host --theme-color-* tokens as the inner reference',
+					function ()
+					{
+						let tmpLayer = fSplitCSS().Layer;
+
+						// The whole point of the indirection: a host that defines the
+						// ecosystem tokens still wins, because its token is consulted
+						// before the alias falls back to a mode-appropriate literal.
+						Expect(tmpLayer).to.contain('var(--theme-color-text-primary,');
+						Expect(tmpLayer).to.contain('var(--theme-color-background-panel,');
+						Expect(tmpLayer).to.contain('var(--theme-color-brand-primary,');
+
+						// Syntax colours chain to the family pict-section-code consumes,
+						// so the help samples and the solver panes agree.
+						Expect(tmpLayer).to.contain('var(--theme-color-syntax-keyword,');
+					}
+				);
+				test
+				(
+					'Should not chain pale status tints to the solid status colour',
+					function ()
+					{
+						let tmpLayer = fSplitCSS().Layer;
+
+						// Regression guard. These were chained to --theme-color-status-*,
+						// so any host defining that token turned a pale error panel into
+						// a solid red block. They chain to an optional -background token
+						// instead and stay tints whatever the host sets.
+						Expect(tmpLayer).to.contain('--pfe-bg-error-tint:');
+						Expect(tmpLayer).to.contain('var(--theme-color-status-error-background,');
+
+						let tmpTintLine = tmpLayer.split('\n').filter(
+							function (pLine) { return pLine.indexOf('--pfe-bg-error-tint:') > -1; })[0];
+						Expect(tmpTintLine).to.not.contain('var(--theme-color-status-error,');
+					}
+				);
+				test
+				(
+					'Should paint icon colours through aliases, not literals',
+					function ()
+					{
+						let tmpIconography = require('../source/providers/Pict-Provider-FormEditorIconography.js');
+						let tmpProvider = new tmpIconography({});
+
+						// Colors.Primary used to be a bare '#3D3229'. It reaches an SVG
+						// presentation attribute, so no stylesheet could override it and
+						// icon outlines stayed near-black on a dark panel.
+						Expect(tmpProvider.options.Colors.Primary).to.contain('var(--pfe-');
+						Expect(tmpProvider.options.Colors.Accent).to.contain('var(--pfe-');
+						Expect(tmpProvider.options.Colors.Muted).to.contain('var(--pfe-');
+						Expect(tmpProvider.options.Colors.Fill).to.contain('var(--pfe-');
+					}
+				);
+				test
+				(
+					'Should preserve sibling colours when a consumer overrides one',
+					function ()
+					{
+						let tmpIconography = require('../source/providers/Pict-Provider-FormEditorIconography.js');
+						let tmpProvider = new tmpIconography({ Colors: { Primary: '#123456' } });
+
+						// A shallow merge would replace the whole Colors object here and
+						// leave Accent / Muted / Fill undefined, painting those icon
+						// parts with the string "undefined".
+						Expect(tmpProvider.options.Colors.Primary).to.equal('#123456');
+						Expect(tmpProvider.options.Colors.Accent).to.be.a('string');
+						Expect(tmpProvider.options.Colors.Accent).to.contain('var(--pfe-');
+						Expect(tmpProvider.options.Colors.Muted).to.contain('var(--pfe-');
+						Expect(tmpProvider.options.Colors.Fill).to.contain('var(--pfe-');
+					}
+				);
+				test
+				(
+					'Should give every categorical histogram slot a distinct colour',
+					function ()
+					{
+						let tmpSource = require('fs').readFileSync(
+							require('path').join(__dirname, '..', 'source', 'views', 'PictView-FormEditor-PropertiesPanel.js'), 'utf8');
+
+						let fPalette = function (pName)
+						{
+							let tmpStart = tmpSource.indexOf('let ' + pName + ' = [');
+							let tmpEnd = tmpSource.indexOf('];', tmpStart);
+							return tmpSource.slice(tmpStart, tmpEnd).match(/var\(--pfe-[a-z0-9-]+\)/g) || [];
+						};
+
+						// Both palettes previously referenced --theme-color-status-warning
+						// at two slots with different hex fallbacks. They read as distinct
+						// only while the token was undefined; any host defining it
+						// collapsed the two bars to one colour.
+						['tmpDataTypeColors', 'tmpInputTypeColors'].forEach(
+							function (pName)
+							{
+								let tmpPalette = fPalette(pName);
+								Expect(tmpPalette.length, pName + ' should be populated').to.be.greaterThan(0);
+
+								let tmpSeen = {};
+								let tmpDuplicates = tmpPalette.filter(
+									function (pColor)
+									{
+										if (tmpSeen[pColor]) { return true; }
+										tmpSeen[pColor] = true;
+										return false;
+									});
+								Expect(tmpDuplicates, pName + ' repeats: ' + tmpDuplicates.join(', ')).to.deep.equal([]);
+							});
+					}
+				);
+			}
+		);
 	}
 );

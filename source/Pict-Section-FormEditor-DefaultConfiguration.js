@@ -32,14 +32,364 @@ module.exports = (
 	ExtendedDescriptorProperties: [],
 
 	CSS: /*css*/`
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME TOKEN LAYER
+   ───────────────────────────────────────────────────────────────────────
+   Every colour in this module resolves through a --pfe-* alias declared
+   here rather than referencing --theme-color-* inline. Three reasons:
+
+   1. DARK MODE. Each alias carries a mode-appropriate fallback, so the
+      editor renders correctly with NO host theme installed. Declaring
+       84 aliases per mode costs a few hundred lines; re-declaring
+      the 750+ colour-bearing rules per mode would cost thousands.
+
+   2. ROLE SEPARATION. One --theme-color-* token often served several
+      roles here -- --theme-color-status-error drove error TEXT, error
+      BORDERS and pale error BACKGROUND TINTS. Chaining all three to one
+      token meant any host defining it turned the pale tints solid red.
+      Tint aliases now chain to an optional <token>-background instead,
+      so they stay tints whatever the host sets the status colour to.
+
+   3. LIGHT FIDELITY. Sites sharing a token often carried slightly
+      different fallbacks. Aliases were derived by clustering those
+      fallbacks perceptually (CIE Lab, ΔE <= 4), so the un-themed light
+      appearance is preserved to within a just-noticeable difference.
+
+   A host defining --theme-color-* still wins: the host token is the
+   INNER reference of each alias, so only the fallback varies by mode.
+
+   Dark mode responds to three signals, matching pict-section-form's
+   tabular ColumnChooser: the [data-theme] attribute (Bulma / HeadLight),
+   the .theme-dark class (pict-provider-theme), and the OS preference --
+   the last guarded by :not([data-theme="light"]) so an explicit light
+   choice still wins. Aliases sit on :root rather than .pict-formeditor
+   because this module portals modals and popovers to <body>.
+
+   Generated -- see docs/theming.md before hand-editing.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root
+{
+	/* Surfaces */
+	--pfe-bg-panel:                  var(--theme-color-background-panel, #FFF);
+	--pfe-bg-secondary:              var(--theme-color-background-secondary, #F5F0E8);
+	--pfe-bg-hover:                  var(--theme-color-background-hover, #EDE8DF);
+	--pfe-bg-tertiary:               var(--theme-color-background-tertiary, #E8E3DA);
+	--pfe-bg-brand:                  var(--theme-color-brand-primary, #9E6B47);
+	--pfe-bg-brand-hover:            var(--theme-color-brand-primary-hover, #8A5C3B);
+	--pfe-bg-error:                  var(--theme-color-status-error, #C0392B);
+	--pfe-bg-error-tint:             var(--theme-color-status-error-background, #FDF2F2);
+	--pfe-bg-success:                var(--theme-color-status-success, #2E7D32);
+	--pfe-bg-success-tint:           var(--theme-color-status-success-background, #C8E6C9);
+	--pfe-bg-on-text-muted:          var(--theme-color-text-muted, #A89E92);
+	--pfe-bg-warning:                var(--theme-color-status-warning, #D4A373);
+	--pfe-bg-warning-tint:           var(--theme-color-status-warning-background, #F3EAE0);
+	--pfe-bg-info:                   var(--theme-color-status-info-background, #E8EDF2);
+	--pfe-bg-accent:                 var(--theme-color-brand-accent-background, #F0E8F5);
+	--pfe-bg-on-text-secondary:      var(--theme-color-text-secondary, #8A7F72);
+
+	/* Text */
+	--pfe-text-primary:              var(--theme-color-text-primary, #3D3229);
+	--pfe-text-secondary:            var(--theme-color-text-secondary, #8A7F72);
+	--pfe-text-on-brand:             var(--theme-color-text-on-brand, #FFF);
+	--pfe-text-error:                var(--theme-color-status-error, #A04040);
+	--pfe-text-error-tint:           var(--theme-color-status-error, #C0A0A0);
+	--pfe-text-muted:                var(--theme-color-text-muted, #B0A89E);
+	--pfe-text-success:              var(--theme-color-status-success, #6B7F5A);
+	--pfe-text-on-border-default:    var(--theme-color-border-default, #C5BFAE);
+	--pfe-text-info:                 var(--theme-color-status-info, #264653);
+	--pfe-text-info-tint:            var(--theme-color-status-info, #5A7F9E);
+	--pfe-text-brand:                var(--theme-color-brand-primary, #9E6B47);
+	--pfe-text-warning:              var(--theme-color-status-warning, #92400E);
+	--pfe-text-warning-tint:         var(--theme-color-status-warning, #D4A373);
+	--pfe-text-on-border-light:      var(--theme-color-border-light, #D4CFC6);
+	--pfe-text-accent:               var(--theme-color-brand-accent, #B07BAC);
+
+	/* Borders */
+	--pfe-border-on-bg-tertiary:     var(--theme-color-background-tertiary, #E8E3DA);
+	--pfe-border-brand:              var(--theme-color-brand-primary, #9E6B47);
+	--pfe-border-default:            var(--theme-color-border-default, #C5BFAE);
+	--pfe-border-on-text-muted:      var(--theme-color-text-muted, #C4B9A8);
+	--pfe-border-brand-hover:        var(--theme-color-brand-primary-hover, #87593B);
+	--pfe-border-error:              var(--theme-color-status-error, #A04040);
+	--pfe-border-error-tint:         var(--theme-color-status-error-background, #E0B0B0);
+	--pfe-border-on-bg-secondary:    var(--theme-color-background-secondary, #F0ECE4);
+	--pfe-border-success:            var(--theme-color-status-success, #6B8F5A);
+	--pfe-border-success-tint:       var(--theme-color-status-success, #22C55E);
+	--pfe-border-light:              var(--theme-color-border-light, #D4CFC6);
+	--pfe-border-warning:            var(--theme-color-status-warning, #8B6914);
+	--pfe-border-warning-tint:       var(--theme-color-status-warning, #D4A373);
+	--pfe-border-on-bg-hover:        var(--theme-color-background-hover, #E8E0D4);
+	--pfe-border-info:               var(--theme-color-status-info, #5A7F9E);
+	--pfe-border-accent:             var(--theme-color-brand-accent, #B07BAC);
+	--pfe-border-on-text-secondary:  var(--theme-color-text-secondary, #8A7F72);
+
+	/* Icon paint */
+	--pfe-icon-primary:              var(--theme-color-text-primary, #3D3229);
+
+	/* Chrome */
+	--pfe-shadow-brand:              var(--theme-color-brand-primary, #9E6B47);
+	--pfe-outline-brand:             var(--theme-color-brand-primary, #9E6B47);
+	--pfe-caret-brand:               var(--theme-color-brand-primary, #9E6B47);
+
+	/* Effects */
+	--pfe-focus-ring:                rgba(158, 107, 71, 0.15);
+	--pfe-shadow:                    rgba(61, 50, 41, 0.12);
+	--pfe-shadow-strong:             rgba(61, 50, 41, 0.25);
+	--pfe-scrim:                     rgba(61, 50, 41, 0.40);
+	--pfe-bg-brand-tint:             rgba(158, 107, 71, 0.05);
+	--pfe-bg-brand-tint-soft:        rgba(158, 107, 71, 0.03);
+
+	/* Syntax */
+	--pfe-syntax-keyword:            var(--theme-color-syntax-keyword, #A626A4);
+	--pfe-syntax-string:             var(--theme-color-syntax-string, #50A14F);
+	--pfe-syntax-number:             var(--theme-color-syntax-number, #986801);
+	--pfe-syntax-comment:            var(--theme-color-syntax-comment, #A0A1A7);
+	--pfe-syntax-operator:           var(--theme-color-syntax-operator, #0184BC);
+	--pfe-syntax-punctuation:        var(--theme-color-syntax-punctuation, #3D3229);
+	--pfe-syntax-function:           var(--theme-color-syntax-function, #4078F2);
+	--pfe-syntax-property:           var(--theme-color-syntax-property, #E45649);
+	--pfe-syntax-tag:                var(--theme-color-syntax-tag, #E45649);
+	--pfe-syntax-attrname:           var(--theme-color-syntax-attrname, #986801);
+	--pfe-syntax-attrvalue:          var(--theme-color-syntax-attrvalue, #50A14F);
+	--pfe-syntax-variable:           var(--theme-color-syntax-variable, #7C3AED);
+	--pfe-code-gutter-border:        var(--theme-color-editor-gutter-border, #DDD6CB);
+	--pfe-code-linenumber:           var(--theme-color-editor-linenumber-text, #A09589);
+
+	/* Categorical data series */
+	--pfe-data-1:                    var(--theme-color-data-1, #3357C7);
+	--pfe-data-2:                    var(--theme-color-data-2, #C75033);
+	--pfe-data-3:                    var(--theme-color-data-3, #2E7A3A);
+	--pfe-data-4:                    var(--theme-color-data-4, #A86B00);
+	--pfe-data-5:                    var(--theme-color-data-5, #6B3AAC);
+	--pfe-data-6:                    var(--theme-color-data-6, #0E7C86);
+	--pfe-data-7:                    var(--theme-color-data-7, #C63A8E);
+	--pfe-data-8:                    var(--theme-color-data-8, #7A6A00);
+	--pfe-data-9:                    var(--theme-color-data-9, #41608A);
+	--pfe-data-10:                   var(--theme-color-data-10, #9C3B3B);
+	--pfe-data-11:                   var(--theme-color-data-11, #1F7A6B);
+	--pfe-data-12:                   var(--theme-color-data-12, #8A3FA0);
+}
+
+/* Dark -- explicit opt-in via attribute or class. */
+[data-theme="dark"],
+.theme-dark
+{
+	/* Surfaces */
+	--pfe-bg-panel:                  var(--theme-color-background-panel, #2A2A2A);
+	--pfe-bg-secondary:              var(--theme-color-background-secondary, #2D2A24);
+	--pfe-bg-hover:                  var(--theme-color-background-hover, #2D2A24);
+	--pfe-bg-tertiary:               var(--theme-color-background-tertiary, #2D2A24);
+	--pfe-bg-brand:                  var(--theme-color-brand-primary, #442100);
+	--pfe-bg-brand-hover:            var(--theme-color-brand-primary-hover, #432103);
+	--pfe-bg-error:                  var(--theme-color-status-error, #670000);
+	--pfe-bg-error-tint:             var(--theme-color-status-error-background, #362F2F);
+	--pfe-bg-success:                var(--theme-color-status-success, #003400);
+	--pfe-bg-success-tint:           var(--theme-color-status-success-background, #203522);
+	--pfe-bg-on-text-muted:          var(--theme-color-text-muted, #302920);
+	--pfe-bg-warning:                var(--theme-color-status-warning, #412300);
+	--pfe-bg-warning-tint:           var(--theme-color-status-warning-background, #352F29);
+	--pfe-bg-info:                   var(--theme-color-status-info-background, #272A2E);
+	--pfe-bg-accent:                 var(--theme-color-brand-accent-background, #2D2831);
+	--pfe-bg-on-text-secondary:      var(--theme-color-text-secondary, #30291F);
+
+	/* Text */
+	--pfe-text-primary:              var(--theme-color-text-primary, #CBBFB5);
+	--pfe-text-secondary:            var(--theme-color-text-secondary, #CABFB3);
+	--pfe-text-on-brand:             var(--theme-color-text-on-brand, #C1C1C1);
+	--pfe-text-error:                var(--theme-color-status-error, #FFA8A2);
+	--pfe-text-error-tint:           var(--theme-color-status-error, #D7BABA);
+	--pfe-text-muted:                var(--theme-color-text-muted, #C7C0B7);
+	--pfe-text-success:              var(--theme-color-status-success, #B5C7A4);
+	--pfe-text-on-border-default:    var(--theme-color-border-default, #C6C1B2);
+	--pfe-text-info:                 var(--theme-color-status-info, #AAC5D2);
+	--pfe-text-info-tint:            var(--theme-color-status-info, #A6C4E1);
+	--pfe-text-brand:                var(--theme-color-brand-primary, #E9B795);
+	--pfe-text-warning:              var(--theme-color-status-warning, #FFAC7E);
+	--pfe-text-warning-tint:         var(--theme-color-status-warning, #E5B98F);
+	--pfe-text-on-border-light:      var(--theme-color-border-light, #C5C0B9);
+	--pfe-text-accent:               var(--theme-color-brand-accent, #E2B2DD);
+
+	/* Borders */
+	--pfe-border-on-bg-tertiary:     var(--theme-color-background-tertiary, #4E4B44);
+	--pfe-border-brand:              var(--theme-color-brand-primary, #6B4224);
+	--pfe-border-default:            var(--theme-color-border-default, #4F4B3E);
+	--pfe-border-on-text-muted:      var(--theme-color-text-muted, #524A3D);
+	--pfe-border-brand-hover:        var(--theme-color-brand-primary-hover, #694228);
+	--pfe-border-error:              var(--theme-color-status-error, #832F30);
+	--pfe-border-error-tint:         var(--theme-color-status-error-background, #664242);
+	--pfe-border-on-bg-secondary:    var(--theme-color-background-secondary, #4E4B45);
+	--pfe-border-success:            var(--theme-color-status-success, #355328);
+	--pfe-border-success-tint:       var(--theme-color-status-success, #005C05);
+	--pfe-border-light:              var(--theme-color-border-light, #4F4B44);
+	--pfe-border-warning:            var(--theme-color-status-warning, #624700);
+	--pfe-border-warning-tint:       var(--theme-color-status-warning, #67441E);
+	--pfe-border-on-bg-hover:        var(--theme-color-background-hover, #504B42);
+	--pfe-border-info:               var(--theme-color-status-info, #2D4F68);
+	--pfe-border-accent:             var(--theme-color-brand-accent, #673C65);
+	--pfe-border-on-text-secondary:  var(--theme-color-text-secondary, #534A3F);
+
+	/* Icon paint */
+	--pfe-icon-primary:              var(--theme-color-text-primary, #E6E9EE);
+
+	/* Chrome */
+	--pfe-shadow-brand:              var(--theme-color-brand-primary, #D4A07E);
+	--pfe-outline-brand:             var(--theme-color-brand-primary, #D4A07E);
+	--pfe-caret-brand:               var(--theme-color-brand-primary, #D4A07E);
+
+	/* Effects */
+	--pfe-focus-ring:                rgba(201, 156, 122, 0.30);
+	--pfe-shadow:                    rgba(0, 0, 0, 0.55);
+	--pfe-shadow-strong:             rgba(0, 0, 0, 0.70);
+	--pfe-scrim:                     rgba(0, 0, 0, 0.65);
+	--pfe-bg-brand-tint:             rgba(201, 156, 122, 0.10);
+	--pfe-bg-brand-tint-soft:        rgba(201, 156, 122, 0.06);
+
+	/* Syntax */
+	--pfe-syntax-keyword:            var(--theme-color-syntax-keyword, #C678DD);
+	--pfe-syntax-string:             var(--theme-color-syntax-string, #98C379);
+	--pfe-syntax-number:             var(--theme-color-syntax-number, #D19A66);
+	--pfe-syntax-comment:            var(--theme-color-syntax-comment, #7F848E);
+	--pfe-syntax-operator:           var(--theme-color-syntax-operator, #56B6C2);
+	--pfe-syntax-punctuation:        var(--theme-color-syntax-punctuation, #ABB2BF);
+	--pfe-syntax-function:           var(--theme-color-syntax-function, #61AFEF);
+	--pfe-syntax-property:           var(--theme-color-syntax-property, #E06C75);
+	--pfe-syntax-tag:                var(--theme-color-syntax-tag, #E06C75);
+	--pfe-syntax-attrname:           var(--theme-color-syntax-attrname, #D19A66);
+	--pfe-syntax-attrvalue:          var(--theme-color-syntax-attrvalue, #98C379);
+	--pfe-syntax-variable:           var(--theme-color-syntax-variable, #C8A2FF);
+	--pfe-code-gutter-border:        var(--theme-color-editor-gutter-border, #333B47);
+	--pfe-code-linenumber:           var(--theme-color-editor-linenumber-text, #6B7480);
+
+	/* Categorical data series */
+	--pfe-data-1:                    var(--theme-color-data-1, #7FA6FF);
+	--pfe-data-2:                    var(--theme-color-data-2, #FF9E7A);
+	--pfe-data-3:                    var(--theme-color-data-3, #6FD08C);
+	--pfe-data-4:                    var(--theme-color-data-4, #E5B24D);
+	--pfe-data-5:                    var(--theme-color-data-5, #B99BFF);
+	--pfe-data-6:                    var(--theme-color-data-6, #5FCBD6);
+	--pfe-data-7:                    var(--theme-color-data-7, #F58FC6);
+	--pfe-data-8:                    var(--theme-color-data-8, #CFC26A);
+	--pfe-data-9:                    var(--theme-color-data-9, #93B4D6);
+	--pfe-data-10:                   var(--theme-color-data-10, #E38B8B);
+	--pfe-data-11:                   var(--theme-color-data-11, #6FD3BE);
+	--pfe-data-12:                   var(--theme-color-data-12, #D19BE0);
+}
+
+/* Dark -- OS preference, unless an explicit light choice is in force. */
+@media (prefers-color-scheme: dark)
+{
+	:root:not([data-theme="light"])
+	{
+		/* Surfaces */
+		--pfe-bg-panel:                  var(--theme-color-background-panel, #2A2A2A);
+		--pfe-bg-secondary:              var(--theme-color-background-secondary, #2D2A24);
+		--pfe-bg-hover:                  var(--theme-color-background-hover, #2D2A24);
+		--pfe-bg-tertiary:               var(--theme-color-background-tertiary, #2D2A24);
+		--pfe-bg-brand:                  var(--theme-color-brand-primary, #442100);
+		--pfe-bg-brand-hover:            var(--theme-color-brand-primary-hover, #432103);
+		--pfe-bg-error:                  var(--theme-color-status-error, #670000);
+		--pfe-bg-error-tint:             var(--theme-color-status-error-background, #362F2F);
+		--pfe-bg-success:                var(--theme-color-status-success, #003400);
+		--pfe-bg-success-tint:           var(--theme-color-status-success-background, #203522);
+		--pfe-bg-on-text-muted:          var(--theme-color-text-muted, #302920);
+		--pfe-bg-warning:                var(--theme-color-status-warning, #412300);
+		--pfe-bg-warning-tint:           var(--theme-color-status-warning-background, #352F29);
+		--pfe-bg-info:                   var(--theme-color-status-info-background, #272A2E);
+		--pfe-bg-accent:                 var(--theme-color-brand-accent-background, #2D2831);
+		--pfe-bg-on-text-secondary:      var(--theme-color-text-secondary, #30291F);
+	
+		/* Text */
+		--pfe-text-primary:              var(--theme-color-text-primary, #CBBFB5);
+		--pfe-text-secondary:            var(--theme-color-text-secondary, #CABFB3);
+		--pfe-text-on-brand:             var(--theme-color-text-on-brand, #C1C1C1);
+		--pfe-text-error:                var(--theme-color-status-error, #FFA8A2);
+		--pfe-text-error-tint:           var(--theme-color-status-error, #D7BABA);
+		--pfe-text-muted:                var(--theme-color-text-muted, #C7C0B7);
+		--pfe-text-success:              var(--theme-color-status-success, #B5C7A4);
+		--pfe-text-on-border-default:    var(--theme-color-border-default, #C6C1B2);
+		--pfe-text-info:                 var(--theme-color-status-info, #AAC5D2);
+		--pfe-text-info-tint:            var(--theme-color-status-info, #A6C4E1);
+		--pfe-text-brand:                var(--theme-color-brand-primary, #E9B795);
+		--pfe-text-warning:              var(--theme-color-status-warning, #FFAC7E);
+		--pfe-text-warning-tint:         var(--theme-color-status-warning, #E5B98F);
+		--pfe-text-on-border-light:      var(--theme-color-border-light, #C5C0B9);
+		--pfe-text-accent:               var(--theme-color-brand-accent, #E2B2DD);
+	
+		/* Borders */
+		--pfe-border-on-bg-tertiary:     var(--theme-color-background-tertiary, #4E4B44);
+		--pfe-border-brand:              var(--theme-color-brand-primary, #6B4224);
+		--pfe-border-default:            var(--theme-color-border-default, #4F4B3E);
+		--pfe-border-on-text-muted:      var(--theme-color-text-muted, #524A3D);
+		--pfe-border-brand-hover:        var(--theme-color-brand-primary-hover, #694228);
+		--pfe-border-error:              var(--theme-color-status-error, #832F30);
+		--pfe-border-error-tint:         var(--theme-color-status-error-background, #664242);
+		--pfe-border-on-bg-secondary:    var(--theme-color-background-secondary, #4E4B45);
+		--pfe-border-success:            var(--theme-color-status-success, #355328);
+		--pfe-border-success-tint:       var(--theme-color-status-success, #005C05);
+		--pfe-border-light:              var(--theme-color-border-light, #4F4B44);
+		--pfe-border-warning:            var(--theme-color-status-warning, #624700);
+		--pfe-border-warning-tint:       var(--theme-color-status-warning, #67441E);
+		--pfe-border-on-bg-hover:        var(--theme-color-background-hover, #504B42);
+		--pfe-border-info:               var(--theme-color-status-info, #2D4F68);
+		--pfe-border-accent:             var(--theme-color-brand-accent, #673C65);
+		--pfe-border-on-text-secondary:  var(--theme-color-text-secondary, #534A3F);
+	
+		/* Icon paint */
+		--pfe-icon-primary:              var(--theme-color-text-primary, #E6E9EE);
+	
+		/* Chrome */
+		--pfe-shadow-brand:              var(--theme-color-brand-primary, #D4A07E);
+		--pfe-outline-brand:             var(--theme-color-brand-primary, #D4A07E);
+		--pfe-caret-brand:               var(--theme-color-brand-primary, #D4A07E);
+	
+		/* Effects */
+		--pfe-focus-ring:                rgba(201, 156, 122, 0.30);
+		--pfe-shadow:                    rgba(0, 0, 0, 0.55);
+		--pfe-shadow-strong:             rgba(0, 0, 0, 0.70);
+		--pfe-scrim:                     rgba(0, 0, 0, 0.65);
+		--pfe-bg-brand-tint:             rgba(201, 156, 122, 0.10);
+		--pfe-bg-brand-tint-soft:        rgba(201, 156, 122, 0.06);
+	
+		/* Syntax */
+		--pfe-syntax-keyword:            var(--theme-color-syntax-keyword, #C678DD);
+		--pfe-syntax-string:             var(--theme-color-syntax-string, #98C379);
+		--pfe-syntax-number:             var(--theme-color-syntax-number, #D19A66);
+		--pfe-syntax-comment:            var(--theme-color-syntax-comment, #7F848E);
+		--pfe-syntax-operator:           var(--theme-color-syntax-operator, #56B6C2);
+		--pfe-syntax-punctuation:        var(--theme-color-syntax-punctuation, #ABB2BF);
+		--pfe-syntax-function:           var(--theme-color-syntax-function, #61AFEF);
+		--pfe-syntax-property:           var(--theme-color-syntax-property, #E06C75);
+		--pfe-syntax-tag:                var(--theme-color-syntax-tag, #E06C75);
+		--pfe-syntax-attrname:           var(--theme-color-syntax-attrname, #D19A66);
+		--pfe-syntax-attrvalue:          var(--theme-color-syntax-attrvalue, #98C379);
+		--pfe-syntax-variable:           var(--theme-color-syntax-variable, #C8A2FF);
+		--pfe-code-gutter-border:        var(--theme-color-editor-gutter-border, #333B47);
+		--pfe-code-linenumber:           var(--theme-color-editor-linenumber-text, #6B7480);
+	
+		/* Categorical data series */
+		--pfe-data-1:                    var(--theme-color-data-1, #7FA6FF);
+		--pfe-data-2:                    var(--theme-color-data-2, #FF9E7A);
+		--pfe-data-3:                    var(--theme-color-data-3, #6FD08C);
+		--pfe-data-4:                    var(--theme-color-data-4, #E5B24D);
+		--pfe-data-5:                    var(--theme-color-data-5, #B99BFF);
+		--pfe-data-6:                    var(--theme-color-data-6, #5FCBD6);
+		--pfe-data-7:                    var(--theme-color-data-7, #F58FC6);
+		--pfe-data-8:                    var(--theme-color-data-8, #CFC26A);
+		--pfe-data-9:                    var(--theme-color-data-9, #93B4D6);
+		--pfe-data-10:                   var(--theme-color-data-10, #E38B8B);
+		--pfe-data-11:                   var(--theme-color-data-11, #6FD3BE);
+		--pfe-data-12:                   var(--theme-color-data-12, #D19BE0);
+	}
+}
+
 .pict-formeditor
 {
 	position: relative;
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 	font-size: 14px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FDFCFA);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
 	overflow: hidden;
 	display: flex;
@@ -51,7 +401,7 @@ module.exports = (
 .pict-fe-tabbar
 {
 	display: flex;
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 	padding: 0;
 	margin: 0;
 }
@@ -63,21 +413,21 @@ module.exports = (
 	background: none;
 	font-size: 13px;
 	font-weight: 500;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	border-top: 2px solid transparent;
 	transition: color 0.15s, border-color 0.15s;
 	user-select: none;
 }
 .pict-fe-tab:hover
 {
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-hover, #EDE8DF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-hover);
 }
 .pict-fe-tab-active
 {
-	color: var(--theme-color-text-primary, #3D3229);
-	border-top-color: var(--theme-color-brand-primary, #9E6B47);
-	background: var(--theme-color-background-panel, #FDFCFA);
+	color: var(--pfe-text-primary);
+	border-top-color: var(--pfe-border-brand);
+	background: var(--pfe-bg-panel);
 }
 
 /* ---- Tab Content Panels ---- */
@@ -108,7 +458,7 @@ module.exports = (
 	margin: 0;
 	font-size: 15px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-btn
 {
@@ -117,41 +467,41 @@ module.exports = (
 	gap: 4px;
 	padding: 6px 12px;
 	border-radius: 4px;
-	border: 1px solid var(--theme-color-border-default, #C5BFAE);
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	border: 1px solid var(--pfe-border-default);
+	background: var(--pfe-bg-secondary);
 	cursor: pointer;
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	user-select: none;
 	transition: background 0.1s, border-color 0.1s;
 }
 .pict-fe-btn:hover
 {
-	background: var(--theme-color-background-tertiary, #E8E3DA);
-	border-color: var(--theme-color-text-muted, #B0A89E);
+	background: var(--pfe-bg-tertiary);
+	border-color: var(--pfe-border-on-text-muted);
 }
 .pict-fe-btn-primary
 {
-	background: var(--theme-color-brand-primary, #9E6B47);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-brand);
+	border-color: var(--pfe-border-brand);
+	color: var(--pfe-text-on-brand);
 }
 .pict-fe-btn-primary:hover
 {
-	background: var(--theme-color-brand-primary-hover, #87593B);
-	border-color: var(--theme-color-brand-primary-hover, #87593B);
+	background: var(--pfe-bg-brand-hover);
+	border-color: var(--pfe-border-brand-hover);
 }
 .pict-fe-btn-danger
 {
-	border-color: color-mix(in srgb, var(--theme-color-status-error, #E8C8C8) 25%, transparent);
-	background: color-mix(in srgb, var(--theme-color-status-error, #FAF0F0) 8%, transparent);
-	color: var(--theme-color-status-error, #A04040);
+	border-color: color-mix(in srgb, var(--pfe-border-error-tint) 25%, transparent);
+	background: color-mix(in srgb, var(--pfe-bg-error-tint) 8%, transparent);
+	color: var(--pfe-text-error);
 }
 .pict-fe-btn-danger:hover
 {
-	background: color-mix(in srgb, var(--theme-color-status-error, #F0D6D6) 18%, transparent);
-	border-color: color-mix(in srgb, var(--theme-color-status-error, #D4A0A0) 40%, transparent);
+	background: color-mix(in srgb, var(--pfe-bg-error-tint) 18%, transparent);
+	border-color: color-mix(in srgb, var(--pfe-border-error-tint) 40%, transparent);
 }
 .pict-fe-btn-sm
 {
@@ -168,9 +518,9 @@ module.exports = (
 }
 .pict-fe-section-card
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-section-header
 {
@@ -178,13 +528,13 @@ module.exports = (
 	align-items: center;
 	justify-content: space-between;
 	padding: 10px 14px;
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-secondary);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px 6px 0 0;
 }
 .pict-fe-section-header:hover
 {
-	background: var(--theme-color-background-hover, #EDE8DF);
+	background: var(--pfe-bg-hover);
 }
 .pict-fe-section-header-labels
 {
@@ -198,18 +548,18 @@ module.exports = (
 {
 	font-weight: 600;
 	font-size: 14px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 	border-bottom: 1px dashed transparent;
 }
 .pict-fe-section-title:hover
 {
-	border-bottom-color: var(--theme-color-border-default, #C5BFAE);
+	border-bottom-color: var(--pfe-border-default);
 }
 .pict-fe-section-hash
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-family: monospace;
 	margin-left: auto;
 	cursor: pointer;
@@ -217,7 +567,7 @@ module.exports = (
 }
 .pict-fe-section-hash:hover
 {
-	border-bottom-color: var(--theme-color-border-default, #C5BFAE);
+	border-bottom-color: var(--pfe-border-default);
 }
 .pict-fe-section-actions
 {
@@ -236,13 +586,13 @@ module.exports = (
 .pict-fe-inline-edit-input
 {
 	padding: 2px 6px;
-	border: 1px solid var(--theme-color-brand-primary, #9E6B47);
+	border: 1px solid var(--pfe-border-brand);
 	border-radius: 3px;
 	font-size: inherit;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 	outline: none;
 	min-width: 80px;
 }
@@ -255,13 +605,13 @@ module.exports = (
 .pict-fe-inline-edit-select
 {
 	padding: 1px 4px;
-	border: 1px solid var(--theme-color-brand-primary, #9E6B47);
+	border: 1px solid var(--pfe-border-brand);
 	border-radius: 3px;
 	font-size: 11px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 	outline: none;
 	cursor: pointer;
 }
@@ -279,7 +629,7 @@ module.exports = (
 	margin: 0;
 	font-size: 13px;
 	font-weight: 600;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
@@ -291,9 +641,9 @@ module.exports = (
 }
 .pict-fe-group-card
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-group-header
 {
@@ -301,8 +651,8 @@ module.exports = (
 	align-items: center;
 	justify-content: space-between;
 	padding: 8px 12px;
-	background: var(--theme-color-background-panel, #FAFAF8);
-	border-bottom: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	background: var(--pfe-bg-panel);
+	border-bottom: 1px solid var(--pfe-border-on-bg-secondary);
 	border-radius: 4px 4px 0 0;
 }
 .pict-fe-group-header-labels
@@ -317,18 +667,18 @@ module.exports = (
 {
 	font-weight: 500;
 	font-size: 13px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 	border-bottom: 1px dashed transparent;
 }
 .pict-fe-group-title:hover
 {
-	border-bottom-color: var(--theme-color-border-default, #C5BFAE);
+	border-bottom-color: var(--pfe-border-default);
 }
 .pict-fe-group-hash
 {
 	font-size: 11px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-family: monospace;
 	margin-left: auto;
 	cursor: pointer;
@@ -336,14 +686,14 @@ module.exports = (
 }
 .pict-fe-group-hash:hover
 {
-	border-bottom-color: var(--theme-color-border-default, #C5BFAE);
+	border-bottom-color: var(--pfe-border-default);
 }
 .pict-fe-group-layout
 {
 	font-size: 11px;
-	color: var(--theme-color-status-success, #6B7F5A);
-	background: var(--theme-color-background-hover, #EEF3E8);
-	border: 1px solid var(--theme-color-background-tertiary, #D4E0C8);
+	color: var(--pfe-text-success);
+	background: var(--pfe-bg-hover);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 9px;
 	padding: 1px 8px;
 	cursor: pointer;
@@ -352,8 +702,8 @@ module.exports = (
 }
 .pict-fe-group-layout:hover
 {
-	background: color-mix(in srgb, var(--theme-color-status-success, #E0EBD6) 18%, transparent);
-	border-color: color-mix(in srgb, var(--theme-color-status-success, #B8CBa8) 35%, transparent);
+	background: color-mix(in srgb, var(--pfe-bg-success-tint) 18%, transparent);
+	border-color: color-mix(in srgb, var(--pfe-border-success-tint) 35%, transparent);
 }
 .pict-fe-group-body
 {
@@ -378,37 +728,37 @@ module.exports = (
 .pict-fe-field-label
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-bottom: 2px;
 }
 .pict-fe-field-input
 {
 	width: 100%;
 	padding: 4px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 13px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 }
 .pict-fe-field-input:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-field-select
 {
 	width: 100%;
 	padding: 4px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 13px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 }
 
@@ -419,10 +769,10 @@ module.exports = (
 }
 .pict-fe-row
 {
-	border: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	border: 1px solid var(--pfe-border-on-bg-secondary);
 	border-radius: 4px;
 	margin-bottom: 6px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-row-header
 {
@@ -430,15 +780,15 @@ module.exports = (
 	align-items: center;
 	justify-content: space-between;
 	padding: 4px 8px;
-	background: var(--theme-color-background-panel, #F9F7F3);
-	border-bottom: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	background: var(--pfe-bg-panel);
+	border-bottom: 1px solid var(--pfe-border-on-bg-secondary);
 	border-radius: 4px 4px 0 0;
 }
 .pict-fe-row-label
 {
 	font-size: 10px;
 	font-weight: 500;
-	color: var(--theme-color-border-default, #C5BFAE);
+	color: var(--pfe-text-on-border-default);
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
 	margin-left: 4px;
@@ -470,35 +820,35 @@ module.exports = (
 	align-items: center;
 	gap: 4px;
 	padding: 3px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
-	background: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-panel);
 	font-size: 12px;
 	cursor: pointer;
 	transition: background 0.1s, border-color 0.1s;
 }
 .pict-fe-input:hover
 {
-	border-color: var(--theme-color-border-default, #C5BFAE);
-	background: var(--theme-color-background-panel, #F9F7F3);
+	border-color: var(--pfe-border-default);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-input-selected
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	background: var(--theme-color-background-secondary, #FBF5EF);
-	box-shadow: 0 0 0 1px var(--theme-color-brand-primary, #9E6B47);
+	border-color: var(--pfe-border-brand);
+	background: var(--pfe-bg-secondary);
+	box-shadow: 0 0 0 1px var(--pfe-shadow-brand);
 }
 .pict-fe-input-ordinal
 {
 	font-size: 9px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	min-width: 14px;
 	text-align: center;
 }
 .pict-fe-input-name
 {
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	font-weight: 500;
 	white-space: nowrap;
 }
@@ -557,41 +907,41 @@ module.exports = (
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-	color: var(--theme-color-text-secondary, #8B7E6A);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-field-input
 {
 	font-family: inherit;
 	font-size: 12px;
 	padding: 4px 6px;
-	border: 1px solid var(--theme-color-border-light, #E0DBCF);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 3px;
-	background: var(--theme-color-background-panel, #FFFCF7);
-	color: var(--theme-color-status-info, #264653);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-info);
 }
 .pict-fe-field-input:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158,107,71,0.1);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-field-select
 {
 	font-family: inherit;
 	font-size: 12px;
 	padding: 4px 6px;
-	border: 1px solid var(--theme-color-border-light, #E0DBCF);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 3px;
-	background: var(--theme-color-background-panel, #FFFCF7);
-	color: var(--theme-color-status-info, #264653);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-info);
 	min-width: 0;
 	flex: 1;
 }
 .pict-fe-field-select:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158,107,71,0.1);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-tabular-columns-header
 {
@@ -600,7 +950,7 @@ module.exports = (
 	justify-content: space-between;
 	padding: 4px 0;
 	margin-bottom: 6px;
-	border-top: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	border-top: 1px solid var(--pfe-border-on-bg-secondary);
 	padding-top: 8px;
 }
 .pict-fe-tabular-columns-list
@@ -626,9 +976,9 @@ module.exports = (
 .pict-fe-refmanifest-badge
 {
 	font-size: 10px;
-	color: var(--theme-color-status-success, #6B7F5A);
-	background: var(--theme-color-background-hover, #EEF3E8);
-	border: 1px solid var(--theme-color-background-tertiary, #D4E0C8);
+	color: var(--pfe-text-success);
+	background: var(--pfe-bg-hover);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 9px;
 	padding: 2px 10px;
 	margin-bottom: 10px;
@@ -710,14 +1060,14 @@ module.exports = (
 }
 .pict-fe-drag-over
 {
-	outline: 2px dashed var(--theme-color-brand-primary, #9E6B47);
+	outline: 2px dashed var(--pfe-outline-brand);
 	outline-offset: -2px;
-	background: rgba(158, 107, 71, 0.05);
+	background: var(--pfe-bg-brand-tint);
 }
 .pict-fe-drag-insert-before
 {
 	position: relative;
-	background: rgba(158, 107, 71, 0.03);
+	background: var(--pfe-bg-brand-tint-soft);
 }
 .pict-fe-drag-insert-before::before
 {
@@ -727,7 +1077,7 @@ module.exports = (
 	left: 0;
 	right: 0;
 	height: 3px;
-	background: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-brand);
 	border-radius: 2px;
 	z-index: 10;
 	pointer-events: none;
@@ -735,7 +1085,7 @@ module.exports = (
 .pict-fe-drag-insert-after
 {
 	position: relative;
-	background: rgba(158, 107, 71, 0.03);
+	background: var(--pfe-bg-brand-tint-soft);
 }
 .pict-fe-drag-insert-after::after
 {
@@ -745,7 +1095,7 @@ module.exports = (
 	left: 0;
 	right: 0;
 	height: 3px;
-	background: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-brand);
 	border-radius: 2px;
 	z-index: 10;
 	pointer-events: none;
@@ -777,44 +1127,44 @@ module.exports = (
 	align-items: center;
 	justify-content: center;
 	cursor: col-resize;
-	background: var(--theme-color-background-secondary, #F0ECE4);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-secondary);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
 	margin: 6px 0;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-size: 10px;
 	user-select: none;
 	transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .pict-fe-panel-toggle:hover
 {
-	background: var(--theme-color-background-tertiary, #E8E3DA);
-	border-color: var(--theme-color-border-light, #D4CFC6);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-tertiary);
+	border-color: var(--pfe-border-light);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-panel-toggle:active
 {
-	background: var(--theme-color-background-tertiary, #DDD7CC);
-	border-color: var(--theme-color-border-default, #C5BFAE);
+	background: var(--pfe-bg-tertiary);
+	border-color: var(--pfe-border-default);
 }
 .pict-fe-panel-toggle-grip
 {
 	width: 4px;
 	height: 32px;
 	border-radius: 2px;
-	background: var(--theme-color-background-tertiary, #CBC4B8);
+	background: var(--pfe-bg-tertiary);
 	transition: background 0.15s;
 }
 .pict-fe-panel-toggle:hover .pict-fe-panel-toggle-grip
 {
-	background: var(--theme-color-text-muted, #A89E92);
+	background: var(--pfe-bg-on-text-muted);
 }
 .pict-fe-properties-panel
 {
 	width: 0;
 	overflow: hidden;
 	border-left: 1px solid transparent;
-	background: var(--theme-color-background-panel, #FAFAF8);
+	background: var(--pfe-bg-panel);
 	display: flex;
 	flex-direction: column;
 }
@@ -822,14 +1172,14 @@ module.exports = (
 {
 	overflow-y: auto;
 	overflow-x: hidden;
-	border-left-color: var(--theme-color-background-tertiary, #E8E3DA);
+	border-left-color: var(--pfe-border-on-bg-tertiary);
 }
 
 /* ---- Panel Tabs ---- */
 .pict-fe-panel-tabbar
 {
 	display: flex;
-	background: var(--theme-color-background-secondary, #F0ECE4);
+	background: var(--pfe-bg-secondary);
 	padding: 0;
 	margin: 0;
 	flex-shrink: 0;
@@ -844,7 +1194,7 @@ module.exports = (
 	background: none;
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	border-top: 2px solid transparent;
 	transition: color 0.15s, border-color 0.15s;
 	text-align: center;
@@ -854,14 +1204,14 @@ module.exports = (
 }
 .pict-fe-panel-tab:hover
 {
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-tertiary);
 }
 .pict-fe-panel-tab-active
 {
-	color: var(--theme-color-text-primary, #3D3229);
-	border-top-color: var(--theme-color-brand-primary, #9E6B47);
-	background: var(--theme-color-background-panel, #FAFAF8);
+	color: var(--pfe-text-primary);
+	border-top-color: var(--pfe-border-brand);
+	background: var(--pfe-bg-panel);
 }
 /* Overflow hamburger menu button */
 .pict-fe-panel-tab-overflow-btn
@@ -870,10 +1220,10 @@ module.exports = (
 	padding: 7px 8px;
 	cursor: pointer;
 	border: none;
-	background: var(--theme-color-background-secondary, #F0ECE4);
+	background: var(--pfe-bg-secondary);
 	font-size: 13px;
 	font-weight: 600;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	border-top: 2px solid transparent;
 	user-select: none;
 	flex-shrink: 0;
@@ -882,8 +1232,8 @@ module.exports = (
 }
 .pict-fe-panel-tab-overflow-btn:hover
 {
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-tertiary);
 }
 .pict-fe-panel-tab-overflow-btn-visible
 {
@@ -896,10 +1246,10 @@ module.exports = (
 	position: absolute;
 	top: 100%;
 	right: 0;
-	background: var(--theme-color-background-panel, #FDFCFA);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 0 0 4px 4px;
-	box-shadow: 0 4px 12px rgba(61, 50, 41, 0.12);
+	box-shadow: 0 4px 12px var(--pfe-shadow);
 	z-index: 20;
 	min-width: 100px;
 }
@@ -916,19 +1266,19 @@ module.exports = (
 	background: none;
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	text-align: left;
 	cursor: pointer;
 	white-space: nowrap;
 }
 .pict-fe-panel-tab-overflow-item:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-secondary);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-panel-tab-overflow-item-active
 {
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-weight: 600;
 }
 .pict-fe-panel-tab-content
@@ -954,7 +1304,7 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	margin-bottom: 8px;
 }
 .pict-fe-form-field
@@ -966,7 +1316,7 @@ module.exports = (
 	display: block;
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-bottom: 3px;
 }
 .pict-fe-form-dashboard-heading
@@ -975,7 +1325,7 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	padding: 8px 12px 4px 12px;
 }
 
@@ -989,8 +1339,8 @@ module.exports = (
 }
 .pict-fe-stats-card
 {
-	background: var(--theme-color-background-panel, #FFF);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 5px;
 	padding: 8px 6px;
 	text-align: center;
@@ -999,7 +1349,7 @@ module.exports = (
 {
 	font-size: 20px;
 	font-weight: 700;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	line-height: 1.1;
 	margin-bottom: 2px;
 }
@@ -1008,7 +1358,7 @@ module.exports = (
 	font-size: 8px;
 	text-transform: uppercase;
 	letter-spacing: 0.4px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-weight: 600;
 }
 
@@ -1028,7 +1378,7 @@ module.exports = (
 .pict-fe-histogram-label
 {
 	flex: 0 0 80px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	font-weight: 500;
 	text-align: right;
 	overflow: hidden;
@@ -1040,7 +1390,7 @@ module.exports = (
 	flex: 1;
 	display: block;
 	height: 14px;
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 	border-radius: 3px;
 	overflow: hidden;
 }
@@ -1048,7 +1398,7 @@ module.exports = (
 {
 	display: block;
 	height: 100%;
-	background: var(--theme-color-status-warning, #D4A373);
+	background: var(--pfe-bg-warning);
 	border-radius: 3px;
 	min-width: 2px;
 	transition: width 0.2s ease;
@@ -1058,7 +1408,7 @@ module.exports = (
 	flex: 0 0 24px;
 	text-align: right;
 	font-weight: 600;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-size: 11px;
 }
 
@@ -1066,26 +1416,26 @@ module.exports = (
 .pict-fe-input-selector
 {
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 }
 .pict-fe-input-selector-select
 {
 	width: 100%;
 	padding: 5px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 12px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 	cursor: pointer;
 }
 .pict-fe-input-selector-select:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 
 /* ---- Properties Panel ---- */
@@ -1095,15 +1445,15 @@ module.exports = (
 	align-items: center;
 	justify-content: space-between;
 	padding: 10px 12px;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
+	background: var(--pfe-bg-secondary);
 	flex-shrink: 0;
 }
 .pict-fe-props-header-title
 {
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	text-transform: uppercase;
 	letter-spacing: 0.4px;
 }
@@ -1112,14 +1462,14 @@ module.exports = (
 	background: none;
 	border: none;
 	font-size: 16px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	cursor: pointer;
 	padding: 0 4px;
 	line-height: 1;
 }
 .pict-fe-props-close:hover
 {
-	color: var(--theme-color-status-error, #A04040);
+	color: var(--pfe-text-error);
 }
 .pict-fe-props-body
 {
@@ -1134,26 +1484,26 @@ module.exports = (
 	font-size: 10px;
 	text-transform: uppercase;
 	letter-spacing: 0.4px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-bottom: 3px;
 }
 .pict-fe-props-input
 {
 	width: 100%;
 	padding: 5px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 13px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 }
 .pict-fe-props-input:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-props-input-mono
 {
@@ -1164,9 +1514,9 @@ module.exports = (
 {
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	padding: 5px 8px;
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 	border-radius: 3px;
 	word-break: break-all;
 }
@@ -1174,20 +1524,20 @@ module.exports = (
 {
 	width: 100%;
 	padding: 5px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 13px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	cursor: pointer;
 	text-align: left;
 	box-sizing: border-box;
 }
 .pict-fe-props-inputtype-btn:hover
 {
-	border-color: var(--theme-color-border-default, #C5BFAE);
-	background: var(--theme-color-background-panel, #F9F7F3);
+	border-color: var(--pfe-border-default);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-props-address-row
 {
@@ -1208,7 +1558,7 @@ module.exports = (
 	justify-content: center;
 	width: 24px;
 	height: 24px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 14px;
 	cursor: pointer;
@@ -1218,23 +1568,23 @@ module.exports = (
 }
 .pict-fe-props-address-confirm
 {
-	background: var(--theme-color-background-hover, #E8F5E9);
-	color: var(--theme-color-status-success, #2E7D32);
+	background: var(--pfe-bg-hover);
+	color: var(--pfe-text-success);
 }
 .pict-fe-props-address-confirm:hover
 {
-	background: color-mix(in srgb, var(--theme-color-status-success, #C8E6C9) 30%, transparent);
-	border-color: var(--theme-color-status-success, #2E7D32);
+	background: color-mix(in srgb, var(--pfe-bg-success-tint) 30%, transparent);
+	border-color: var(--pfe-border-success);
 }
 .pict-fe-props-address-cancel
 {
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-status-error, #A04040);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-error);
 }
 .pict-fe-props-address-cancel:hover
 {
-	background: var(--theme-color-background-hover, #FFEBEE);
-	border-color: var(--theme-color-status-error, #A04040);
+	background: var(--pfe-bg-hover);
+	border-color: var(--pfe-border-error);
 }
 .pict-fe-props-position-row
 {
@@ -1245,13 +1595,13 @@ module.exports = (
 .pict-fe-props-position-label
 {
 	font-size: 12px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-weight: 600;
 	white-space: nowrap;
 }
 .pict-fe-props-section-divider
 {
-	border-top: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-top: 1px solid var(--pfe-border-on-bg-tertiary);
 	margin: 14px 0 10px 0;
 }
 .pict-fe-props-solver-info
@@ -1262,7 +1612,7 @@ module.exports = (
 {
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	margin-bottom: 6px;
@@ -1273,7 +1623,7 @@ module.exports = (
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-top: 6px;
 	margin-bottom: 2px;
 }
@@ -1281,9 +1631,9 @@ module.exports = (
 {
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FAF8F5);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	padding: 3px 6px;
 	margin: 2px 0;
@@ -1293,7 +1643,7 @@ module.exports = (
 }
 .pict-fe-props-solver-info-assignment
 {
-	border-left: 3px solid var(--theme-color-brand-primary, #9E6B47);
+	border-left: 3px solid var(--pfe-border-brand);
 	padding-left: 6px;
 	font-weight: 600;
 }
@@ -1304,14 +1654,14 @@ module.exports = (
 }
 .pict-fe-props-solver-info-link:hover
 {
-	background: var(--theme-color-background-hover, #EDE8DF);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-text-primary, #5B3A20);
+	background: var(--pfe-bg-hover);
+	border-color: var(--pfe-border-brand);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-props-placeholder
 {
 	font-size: 11px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 	text-align: center;
 	padding: 8px;
@@ -1320,7 +1670,7 @@ module.exports = (
 {
 	font-size: 11px;
 	font-weight: 600;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	padding: 8px 12px 0 12px;
@@ -1330,20 +1680,20 @@ module.exports = (
 {
 	width: 100%;
 	padding: 6px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-family: monospace;
 	font-size: 12px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	resize: vertical;
 	box-sizing: border-box;
 }
 .pict-fe-props-textarea:focus
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	border-color: var(--pfe-border-brand);
 	outline: none;
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.12);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-props-checkbox-label
 {
@@ -1351,7 +1701,7 @@ module.exports = (
 	align-items: flex-start;
 	gap: 6px;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #5A5048);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 	line-height: 1.4;
 }
@@ -1377,10 +1727,10 @@ module.exports = (
 	z-index: 10000;
 	width: 340px;
 	max-height: 420px;
-	background: var(--theme-color-background-panel, #FFF);
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 8px;
-	box-shadow: 0 8px 24px rgba(61, 50, 41, 0.15), 0 2px 8px rgba(61, 50, 41, 0.08);
+	box-shadow: 0 8px 24px var(--pfe-shadow), 0 2px 8px var(--pfe-shadow);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -1388,31 +1738,31 @@ module.exports = (
 .pict-fe-inputtype-picker-search
 {
 	padding: 10px 12px 8px 12px;
-	border-bottom: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	border-bottom: 1px solid var(--pfe-border-on-bg-secondary);
 }
 .pict-fe-inputtype-picker-search-input
 {
 	width: 100%;
 	padding: 7px 10px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 5px;
 	font-size: 13px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FDFCFA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 	outline: none;
 	transition: border-color 0.15s, box-shadow 0.15s;
 }
 .pict-fe-inputtype-picker-search-input:focus
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-inputtype-picker-default
 {
 	padding: 4px 8px;
-	border-bottom: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	border-bottom: 1px solid var(--pfe-border-on-bg-secondary);
 }
 .pict-fe-inputtype-picker-categories
 {
@@ -1431,7 +1781,7 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.6px;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 }
 .pict-fe-inputtype-picker-item
 {
@@ -1441,15 +1791,15 @@ module.exports = (
 }
 .pict-fe-inputtype-picker-item:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 }
 .pict-fe-inputtype-picker-item-active
 {
-	background: var(--theme-color-background-hover, #EEF3E8);
+	background: var(--pfe-bg-hover);
 }
 .pict-fe-inputtype-picker-item-active:hover
 {
-	background: var(--theme-color-background-hover, #E4EDD8);
+	background: var(--pfe-bg-hover);
 }
 .pict-fe-inputtype-picker-item-name
 {
@@ -1457,19 +1807,19 @@ module.exports = (
 	align-items: center;
 	font-size: 13px;
 	font-weight: 500;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-inputtype-picker-item-desc
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-top: 1px;
 }
 .pict-fe-inputtype-picker-empty
 {
 	padding: 16px 12px;
 	text-align: center;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 	font-size: 12px;
 }
@@ -1482,7 +1832,7 @@ module.exports = (
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(61, 50, 41, 0.4);
+	background: var(--pfe-scrim);
 	z-index: 9998;
 }
 .pict-fe-content-editor
@@ -1492,9 +1842,9 @@ module.exports = (
 	left: 10vw;
 	width: 80vw;
 	height: 90vh;
-	background: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-panel);
 	border-radius: 8px;
-	box-shadow: 0 8px 32px rgba(61, 50, 41, 0.25);
+	box-shadow: 0 8px 32px var(--pfe-shadow-strong);
 	z-index: 9999;
 	display: flex;
 	flex-direction: column;
@@ -1505,8 +1855,8 @@ module.exports = (
 	display: flex;
 	align-items: center;
 	padding: 12px 16px;
-	border-bottom: 1px solid var(--theme-color-border-light, #E8E2D8);
-	background: var(--theme-color-background-panel, #FAF8F5);
+	border-bottom: 1px solid var(--pfe-border-light);
+	background: var(--pfe-bg-panel);
 	flex-shrink: 0;
 }
 .pict-fe-content-editor-title
@@ -1514,12 +1864,12 @@ module.exports = (
 	flex: 1;
 	font-weight: 600;
 	font-size: 14px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-content-editor-close
 {
-	background: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-brand);
+	color: var(--pfe-text-on-brand);
 	border: none;
 	border-radius: 4px;
 	padding: 6px 16px;
@@ -1529,7 +1879,7 @@ module.exports = (
 }
 .pict-fe-content-editor-close:hover
 {
-	background: var(--theme-color-brand-primary-hover, #8A5C3B);
+	background: var(--pfe-bg-brand-hover);
 }
 .pict-fe-content-editor-body
 {
@@ -1546,7 +1896,7 @@ module.exports = (
 	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 	font-size: 13px;
 	line-height: 1.6;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	resize: none;
 	outline: none;
 	box-sizing: border-box;
@@ -1555,8 +1905,8 @@ module.exports = (
 {
 	width: 100%;
 	padding: 8px 12px;
-	background: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-brand);
+	color: var(--pfe-text-on-brand);
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
@@ -1566,7 +1916,7 @@ module.exports = (
 }
 .pict-fe-props-content-edit-btn:hover
 {
-	background: var(--theme-color-brand-primary-hover, #8A5C3B);
+	background: var(--pfe-bg-brand-hover);
 }
 
 /* ---- Manifest Summary ---- */
@@ -1574,18 +1924,18 @@ module.exports = (
 {
 	margin-top: 6px;
 	padding: 6px 8px;
-	background: var(--theme-color-background-panel, #F9F7F3);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #5D544A);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-manifest-summary-error
 {
-	color: var(--theme-color-status-error, #A04040);
+	color: var(--pfe-text-error);
 	font-style: italic;
-	background: color-mix(in srgb, var(--theme-color-status-error, #FFF5F5) 5%, transparent);
-	border-color: var(--theme-color-status-error, #E0B0B0);
+	background: color-mix(in srgb, var(--pfe-bg-error-tint) 5%, transparent);
+	border-color: var(--pfe-border-error-tint);
 }
 .pict-fe-manifest-summary-stats
 {
@@ -1599,7 +1949,7 @@ module.exports = (
 }
 .pict-fe-manifest-summary-stat strong
 {
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-weight: 700;
 }
 .pict-fe-manifest-summary-types
@@ -1612,9 +1962,9 @@ module.exports = (
 {
 	font-size: 10px;
 	padding: 1px 5px;
-	background: var(--theme-color-background-hover, #EDE8DF);
+	background: var(--pfe-bg-hover);
 	border-radius: 3px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	white-space: nowrap;
 }
 
@@ -1631,15 +1981,15 @@ module.exports = (
 	font-size: 10px;
 	text-transform: uppercase;
 	letter-spacing: 0.4px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-solver-add-btn
 {
 	padding: 2px 8px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 3px;
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-brand);
 	font-size: 11px;
 	font-weight: 600;
 	cursor: pointer;
@@ -1647,8 +1997,8 @@ module.exports = (
 }
 .pict-fe-solver-add-btn:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-secondary);
+	border-color: var(--pfe-border-brand);
 }
 .pict-fe-solver-entry
 {
@@ -1657,14 +2007,14 @@ module.exports = (
 	gap: 4px;
 	padding: 6px 8px;
 	margin-bottom: 4px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 	transition: border-color 0.1s, opacity 0.1s;
 }
 .pict-fe-solver-entry:hover
 {
-	border-color: var(--theme-color-border-light, #D4CFC6);
+	border-color: var(--pfe-border-light);
 }
 .pict-fe-solver-entry.pict-fe-dragging
 {
@@ -1672,27 +2022,27 @@ module.exports = (
 }
 .pict-fe-solver-entry.pict-fe-drag-over
 {
-	outline: 2px dashed var(--theme-color-brand-primary, #9E6B47);
+	outline: 2px dashed var(--pfe-outline-brand);
 	outline-offset: -2px;
-	background: rgba(158, 107, 71, 0.05);
+	background: var(--pfe-bg-brand-tint);
 }
 .pict-fe-solver-expression
 {
 	width: 100%;
 	padding: 4px 6px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 }
 .pict-fe-solver-expression:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.12);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-solver-bottom-row
 {
@@ -1716,20 +2066,20 @@ module.exports = (
 {
 	width: 40px;
 	padding: 2px 4px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	text-align: center;
 	box-sizing: border-box;
 }
 .pict-fe-solver-ordinal:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.12);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-solver-btn
 {
@@ -1740,13 +2090,13 @@ module.exports = (
 	cursor: pointer;
 	font-size: 12px;
 	line-height: 1;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 }
 .pict-fe-solver-btn:hover
 {
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-secondary, #F0ECE4);
-	border-color: var(--theme-color-border-light, #D4CFC6);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-secondary);
+	border-color: var(--pfe-border-light);
 }
 .pict-fe-solver-btn-remove,
 .pict-fe-solver-btn-expand
@@ -1761,26 +2111,26 @@ module.exports = (
 }
 .pict-fe-solver-btn-remove
 {
-	color: color-mix(in srgb, var(--theme-color-status-error, #C0A0A0) 45%, transparent);
+	color: color-mix(in srgb, var(--pfe-text-error-tint) 45%, transparent);
 }
 .pict-fe-solver-btn-remove:hover
 {
-	color: var(--theme-color-status-error, #A04040);
-	background: var(--theme-color-background-hover, #FFEBEE);
-	border-color: var(--theme-color-status-error, #E0B0B0);
+	color: var(--pfe-text-error);
+	background: var(--pfe-bg-hover);
+	border-color: var(--pfe-border-error-tint);
 }
 .pict-fe-solver-btn-armed
 {
 	opacity: 1 !important;
-	color: var(--theme-color-background-panel, #fff) !important;
-	background: var(--theme-color-status-error, #C0392B) !important;
-	border-color: var(--theme-color-status-error, #A93226) !important;
+	color: var(--pfe-text-on-brand) !important;
+	background: var(--pfe-bg-error) !important;
+	border-color: var(--pfe-border-error) !important;
 	font-size: 10px;
 	padding: 1px 6px;
 }
 .pict-fe-solver-btn-armed:hover
 {
-	background: var(--theme-color-status-error, #A93226) !important;
+	background: var(--pfe-bg-error) !important;
 }
 .pict-fe-solver-drag-handle
 {
@@ -1791,7 +2141,7 @@ module.exports = (
 	align-items: center;
 	transition: opacity 0.15s;
 	padding: 1px 2px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-solver-drag-handle:hover
 {
@@ -1806,18 +2156,18 @@ module.exports = (
 	padding: 8px;
 	text-align: center;
 	font-size: 11px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 }
 .pict-fe-solver-btn-expand
 {
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 }
 .pict-fe-solver-btn-expand:hover
 {
-	color: var(--theme-color-brand-primary, #9E6B47);
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-color: var(--theme-color-border-light, #D4CFC6);
+	color: var(--pfe-text-brand);
+	background: var(--pfe-bg-secondary);
+	border-color: var(--pfe-border-light);
 }
 
 /* ---- Solver Code Editor ---- */
@@ -1826,15 +2176,15 @@ module.exports = (
 {
 	width: 100%;
 	min-height: 120px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 	overflow: auto;
 	box-sizing: border-box;
 }
 .pict-fe-solver-code-editor-container:focus-within
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 /* Remove pict-section-code default border since our container provides it */
 .pict-fe-solver-code-editor-container .pict-code-editor-wrap
@@ -1842,26 +2192,40 @@ module.exports = (
 	border: none;
 	border-radius: 0;
 }
-/* Warm palette overrides to match form editor */
-.pict-fe-solver-code-editor-container .pict-code-editor
+/* Warm palette overrides to match form editor.
+   pict-section-code styles this surface with its own
+   .pict-code-editor-wrap .X selectors, which tie with a bare
+   .pict-fe-solver-code-editor-container .X on specificity and win on source
+   order. Naming the wrap class here keeps these one class ahead, so they land
+   without reaching for !important. */
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor
 {
-	background: var(--theme-color-background-panel, #FDFCFA);
-	color: var(--theme-color-text-primary, #3D3229);
-	caret-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
+	caret-color: var(--pfe-caret-brand);
 	font-size: 13px;
 }
-.pict-fe-solver-code-editor-container .pict-code-line-numbers
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-line-numbers
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-right-color: var(--theme-color-background-tertiary, #E8E3DA);
-	color: var(--theme-color-text-muted, #B0A89E);
+	background: var(--pfe-bg-secondary);
+	border-right-color: var(--pfe-border-on-bg-tertiary);
+	color: var(--pfe-text-muted);
 }
 /* Syntax highlighting token colors for solver DSL */
-.pict-fe-solver-code-editor-container .keyword { color: var(--theme-color-brand-primary, #9E6B47); font-weight: 600; }
-.pict-fe-solver-code-editor-container .string { color: var(--theme-color-status-success, #50A14F); }
-.pict-fe-solver-code-editor-container .number { color: var(--theme-color-status-warning, #986801); }
-.pict-fe-solver-code-editor-container .property { color: var(--theme-color-brand-primary, #4078F2); }
-.pict-fe-solver-code-editor-container .operator { color: var(--theme-color-status-info, #0184BC); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .keyword { color: var(--pfe-syntax-keyword); font-weight: 600; }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .string { color: var(--pfe-syntax-string); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .number { color: var(--pfe-syntax-number); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .property { color: var(--pfe-syntax-property); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .operator { color: var(--pfe-syntax-operator); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .comment { color: var(--pfe-syntax-comment); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .punctuation { color: var(--pfe-syntax-punctuation); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .function-name { color: var(--pfe-syntax-function); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .attr-name { color: var(--pfe-syntax-attrname); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .attr-value { color: var(--pfe-syntax-attrvalue); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .builtin { color: var(--pfe-syntax-number); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .tag { color: var(--pfe-syntax-tag); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .type { color: var(--pfe-syntax-keyword); }
+.pict-fe-solver-code-editor-container .pict-code-editor-wrap .pict-code-editor .variable { color: var(--pfe-syntax-variable); }
 .pict-fe-solver-modal-ordinal-row
 {
 	display: flex;
@@ -1873,7 +2237,7 @@ module.exports = (
 .pict-fe-solver-modal-reference
 {
 	margin-top: 14px;
-	border-top: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-top: 1px solid var(--pfe-border-on-bg-tertiary);
 	padding-top: 12px;
 	flex: 1;
 	display: flex;
@@ -1891,27 +2255,27 @@ module.exports = (
 {
 	flex: 1;
 	padding: 4px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 12px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 }
 .pict-fe-solver-modal-reference-search:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.12);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-solver-modal-reference-list
 {
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-solver-modal-reference-group
 {
@@ -1920,9 +2284,9 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-brand-primary, #9E6B47);
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-brand);
+	background: var(--pfe-bg-secondary);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 	position: sticky;
 	top: 0;
 }
@@ -1932,7 +2296,7 @@ module.exports = (
 	flex-direction: column;
 	padding: 5px 10px;
 	cursor: pointer;
-	border-bottom: 1px solid var(--theme-color-background-secondary, #F0ECE4);
+	border-bottom: 1px solid var(--pfe-border-on-bg-secondary);
 	transition: background 0.1s;
 }
 .pict-fe-solver-modal-reference-item:last-child
@@ -1941,7 +2305,7 @@ module.exports = (
 }
 .pict-fe-solver-modal-reference-item:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 }
 .pict-fe-solver-modal-reference-row
 {
@@ -1954,7 +2318,7 @@ module.exports = (
 {
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1964,7 +2328,7 @@ module.exports = (
 {
 	font-family: monospace;
 	font-size: 10px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	white-space: nowrap;
 	flex-shrink: 0;
 }
@@ -1972,7 +2336,7 @@ module.exports = (
 {
 	font-family: monospace;
 	font-size: 10px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	white-space: nowrap;
 	flex-shrink: 0;
 	min-width: 0;
@@ -1981,18 +2345,18 @@ module.exports = (
 }
 .pict-fe-solver-modal-reference-item-expanded
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-left: 3px solid var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-secondary);
+	border-left: 3px solid var(--pfe-border-brand);
 	padding-left: 9px;
 }
 .pict-fe-solver-modal-reference-insert-btn
 {
 	font-size: 12px;
 	padding: 4px 14px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 	font-weight: 500;
 	flex-shrink: 0;
@@ -2006,13 +2370,13 @@ module.exports = (
 }
 .pict-fe-solver-modal-reference-insert-btn:hover
 {
-	background: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-background-panel, #FFF);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-brand);
+	color: var(--pfe-text-on-brand);
+	border-color: var(--pfe-border-brand);
 }
 .pict-fe-solver-modal-reference-detail
 {
-	border-top: 1px dashed var(--theme-color-border-light, #D4CFC6);
+	border-top: 1px dashed var(--pfe-border-light);
 	margin-top: 6px;
 	padding-top: 6px;
 }
@@ -2022,7 +2386,7 @@ module.exports = (
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-top: 4px;
 	margin-bottom: 2px;
 }
@@ -2030,9 +2394,9 @@ module.exports = (
 {
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FAF8F5);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	padding: 3px 6px;
 	margin: 2px 0;
@@ -2042,7 +2406,7 @@ module.exports = (
 }
 .pict-fe-solver-modal-reference-detail-assignment
 {
-	border-left: 3px solid var(--theme-color-brand-primary, #9E6B47);
+	border-left: 3px solid var(--pfe-border-brand);
 	font-weight: 600;
 	padding-left: 6px;
 }
@@ -2053,44 +2417,44 @@ module.exports = (
 }
 .pict-fe-solver-modal-reference-detail-link:hover
 {
-	background: var(--theme-color-background-hover, #EDE8DF);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-text-primary, #5B3A20);
+	background: var(--pfe-bg-hover);
+	border-color: var(--pfe-border-brand);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-solver-modal-reference-detail-empty
 {
 	font-size: 10px;
 	font-style: italic;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	padding: 4px 0;
 }
 .pict-fe-solver-modal-btn
 {
 	padding: 6px 16px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 4px;
 	font-size: 13px;
 	font-weight: 500;
 	cursor: pointer;
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
 	transition: background 0.1s, border-color 0.1s;
 }
 .pict-fe-solver-modal-btn:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-color: var(--theme-color-border-default, #C5BFAE);
+	background: var(--pfe-bg-secondary);
+	border-color: var(--pfe-border-default);
 }
 .pict-fe-solver-modal-btn-save
 {
-	background: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-background-panel, #FFF);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-brand);
+	color: var(--pfe-text-on-brand);
+	border-color: var(--pfe-border-brand);
 }
 .pict-fe-solver-modal-btn-save:hover
 {
-	background: var(--theme-color-brand-primary-hover, #8A5C3A);
-	border-color: var(--theme-color-brand-primary-hover, #8A5C3A);
+	background: var(--pfe-bg-brand-hover);
+	border-color: var(--pfe-border-brand-hover);
 }
 
 /* ---- Solver Editor Bottom Tabs ---- */
@@ -2098,7 +2462,7 @@ module.exports = (
 {
 	display: flex;
 	gap: 0;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 	margin-top: 14px;
 	flex-shrink: 0;
 }
@@ -2107,7 +2471,7 @@ module.exports = (
 	padding: 5px 12px;
 	font-size: 11px;
 	font-weight: 500;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	background: none;
 	border: none;
 	border-bottom: 2px solid transparent;
@@ -2117,13 +2481,13 @@ module.exports = (
 }
 .pict-fe-solver-bottom-tab:hover
 {
-	color: var(--theme-color-text-primary, #5B3A20);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-solver-bottom-tab-active
 {
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-weight: 600;
-	border-bottom-color: var(--theme-color-brand-primary, #9E6B47);
+	border-bottom-color: var(--pfe-border-brand);
 }
 .pict-fe-solver-linter-spinner
 {
@@ -2131,8 +2495,8 @@ module.exports = (
 	width: 10px;
 	height: 10px;
 	margin-left: 6px;
-	border: 1.5px solid var(--theme-color-background-tertiary, #E8E3DA);
-	border-top-color: var(--theme-color-brand-primary, #9E6B47);
+	border: 1.5px solid var(--pfe-border-on-bg-tertiary);
+	border-top-color: var(--pfe-border-brand);
 	border-radius: 50%;
 	opacity: 0;
 	animation: pict-fe-solver-linter-spin 0.6s linear infinite;
@@ -2175,7 +2539,7 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.4px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin-bottom: 4px;
 }
 .pict-fe-solver-linter-section-label + .pict-fe-solver-linter-section-label,
@@ -2192,8 +2556,8 @@ module.exports = (
 	flex-wrap: wrap;
 	gap: 3px;
 	padding: 6px 8px;
-	background: var(--theme-color-background-panel, #FDFCFA);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 	margin-bottom: 10px;
 	min-height: 24px;
@@ -2211,46 +2575,46 @@ module.exports = (
 }
 .pict-fe-solver-linter-token-constant
 {
-	background: color-mix(in srgb, var(--theme-color-status-warning, #FDF6EC) 10%, transparent);
-	color: var(--theme-color-status-warning, #986801);
+	background: color-mix(in srgb, var(--pfe-bg-warning-tint) 10%, transparent);
+	color: var(--pfe-syntax-number);
 }
 .pict-fe-solver-linter-token-symbol
 {
-	background: color-mix(in srgb, var(--theme-color-status-info, #EEF3FF) 10%, transparent);
-	color: var(--theme-color-brand-primary, #4078F2);
+	background: color-mix(in srgb, var(--pfe-bg-info) 10%, transparent);
+	color: var(--pfe-syntax-property);
 }
 .pict-fe-solver-linter-token-operator
 {
-	background: color-mix(in srgb, var(--theme-color-status-info, #EAF5F8) 10%, transparent);
-	color: var(--theme-color-status-info, #0184BC);
+	background: color-mix(in srgb, var(--pfe-bg-info) 10%, transparent);
+	color: var(--pfe-syntax-operator);
 	font-weight: 600;
 }
 .pict-fe-solver-linter-token-function
 {
-	background: var(--theme-color-background-secondary, #F5ECE4);
-	color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-secondary);
+	color: var(--pfe-syntax-function);
 	font-weight: 600;
 }
 .pict-fe-solver-linter-token-string
 {
-	background: color-mix(in srgb, var(--theme-color-status-success, #EEF7EE) 10%, transparent);
-	color: var(--theme-color-status-success, #50A14F);
+	background: color-mix(in srgb, var(--pfe-bg-success-tint) 10%, transparent);
+	color: var(--pfe-syntax-string);
 }
 .pict-fe-solver-linter-token-stateaddress
 {
-	background: color-mix(in srgb, var(--theme-color-brand-accent, #F0E8F5) 15%, transparent);
-	color: var(--theme-color-brand-accent, #7C3AED);
+	background: color-mix(in srgb, var(--pfe-bg-accent) 15%, transparent);
+	color: var(--pfe-syntax-variable);
 }
 .pict-fe-solver-linter-token-assignment
 {
-	background: var(--theme-color-background-secondary, #F5ECE4);
-	color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-secondary);
+	color: var(--pfe-syntax-operator);
 	font-weight: 700;
 }
 .pict-fe-solver-linter-token-parenthesis
 {
-	background: var(--theme-color-background-secondary, #F0ECE4);
-	color: var(--theme-color-text-secondary, #8A7F72);
+	background: var(--pfe-bg-secondary);
+	color: var(--pfe-syntax-punctuation);
 	font-weight: 600;
 }
 .pict-fe-solver-linter-messages
@@ -2268,29 +2632,29 @@ module.exports = (
 }
 .pict-fe-solver-linter-message-error
 {
-	background: var(--theme-color-background-hover, #FEF2F2);
-	color: var(--theme-color-status-error, #991B1B);
-	border-left: 3px solid var(--theme-color-status-error, #DC2626);
+	background: var(--pfe-bg-hover);
+	color: var(--pfe-text-error);
+	border-left: 3px solid var(--pfe-border-error);
 }
 .pict-fe-solver-linter-message-warning
 {
-	background: color-mix(in srgb, var(--theme-color-status-warning, #FFFBEB) 8%, transparent);
-	color: color-mix(in srgb, var(--theme-color-status-warning, #92400E) 100%, transparent);
-	border-left: 3px solid var(--theme-color-status-warning, #F59E0B);
+	background: color-mix(in srgb, var(--pfe-bg-warning-tint) 8%, transparent);
+	color: color-mix(in srgb, var(--pfe-text-warning) 100%, transparent);
+	border-left: 3px solid var(--pfe-border-warning-tint);
 }
 .pict-fe-solver-linter-ok
 {
 	font-size: 11px;
-	color: var(--theme-color-status-success, #166534);
-	background: color-mix(in srgb, var(--theme-color-status-success, #F0FDF4) 6%, transparent);
+	color: var(--pfe-text-success);
+	background: color-mix(in srgb, var(--pfe-bg-success-tint) 6%, transparent);
 	padding: 5px 8px;
 	border-radius: 3px;
-	border-left: 3px solid var(--theme-color-status-success, #22C55E);
+	border-left: 3px solid var(--pfe-border-success-tint);
 }
 .pict-fe-solver-linter-empty
 {
 	font-size: 11px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 	padding: 8px 0;
 }
@@ -2319,19 +2683,19 @@ module.exports = (
 {
 	display: inline-block;
 	font-size: 11px;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	text-decoration: none;
 	padding: 2px 8px;
-	background: var(--theme-color-background-panel, #FAF6F2);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	cursor: pointer;
 	transition: background 0.12s, border-color 0.12s;
 }
 .pict-fe-solver-linter-doc-link:hover
 {
-	background: var(--theme-color-background-secondary, #F5ECE4);
-	border-color: var(--theme-color-border-light, #D4C5B3);
+	background: var(--pfe-bg-secondary);
+	border-color: var(--pfe-border-light);
 }
 
 /* ---- Linter Token References (Descriptors) ---- */
@@ -2345,8 +2709,8 @@ module.exports = (
 .pict-fe-solver-linter-descriptor
 {
 	padding: 8px 10px;
-	background: var(--theme-color-background-panel, #FDFCFA);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 }
 .pict-fe-solver-linter-descriptor-row
@@ -2364,14 +2728,14 @@ module.exports = (
 {
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-solver-linter-descriptor-type
 {
 	font-size: 10px;
 	font-weight: 600;
-	color: var(--theme-color-background-panel, #fff);
-	background: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-on-brand);
+	background: var(--pfe-bg-brand);
 	padding: 1px 6px;
 	border-radius: 3px;
 	text-transform: uppercase;
@@ -2380,14 +2744,14 @@ module.exports = (
 .pict-fe-solver-linter-descriptor-detail
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
 }
 .pict-fe-solver-linter-descriptor-solver-label
 {
 	font-size: 9px;
 	font-weight: 700;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	margin-top: 5px;
@@ -2396,10 +2760,10 @@ module.exports = (
 {
 	font-size: 11px;
 	font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	padding: 2px 6px;
-	background: var(--theme-color-background-panel, #FAF6F2);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	cursor: pointer;
 	margin-top: 2px;
@@ -2410,39 +2774,39 @@ module.exports = (
 }
 .pict-fe-solver-linter-descriptor-solver-link:hover
 {
-	background: var(--theme-color-background-secondary, #F5ECE4);
-	border-color: var(--theme-color-border-light, #D4C5B3);
+	background: var(--pfe-bg-secondary);
+	border-color: var(--pfe-border-light);
 }
 
 /* ---- Searchable Selector Dropdown ---- */
 .pict-fe-searchable-selector
 {
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 	position: relative;
 }
 .pict-fe-searchable-selector-input
 {
 	width: 100%;
 	padding: 5px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 12px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 	cursor: text;
 }
 .pict-fe-searchable-selector-input:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-searchable-selector-input::placeholder
 {
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 }
 .pict-fe-searchable-selector-list
@@ -2454,10 +2818,10 @@ module.exports = (
 	top: 100%;
 	max-height: 260px;
 	overflow-y: auto;
-	background: var(--theme-color-background-panel, #FFF);
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 0 0 5px 5px;
-	box-shadow: 0 6px 16px rgba(61, 50, 41, 0.12);
+	box-shadow: 0 6px 16px var(--pfe-shadow);
 	z-index: 100;
 	margin-top: -1px;
 }
@@ -2472,8 +2836,8 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-brand-primary, #9E6B47);
-	background: var(--theme-color-background-panel, #FAFAF8);
+	color: var(--pfe-text-brand);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-searchable-selector-subgroup-label
 {
@@ -2481,8 +2845,8 @@ module.exports = (
 	font-size: 9px;
 	font-weight: 600;
 	letter-spacing: 0.3px;
-	color: var(--theme-color-text-secondary, #8A7F72);
-	background: var(--theme-color-background-panel, #FDFCFA);
+	color: var(--pfe-text-secondary);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-searchable-selector-item-indented
 {
@@ -2492,7 +2856,7 @@ module.exports = (
 {
 	padding: 5px 10px;
 	font-size: 12px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 	transition: background 0.08s;
 	white-space: nowrap;
@@ -2501,23 +2865,23 @@ module.exports = (
 }
 .pict-fe-searchable-selector-item:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 }
 .pict-fe-searchable-selector-item-active
 {
-	background: var(--theme-color-background-hover, #EEF3E8);
+	background: var(--pfe-bg-hover);
 	font-weight: 500;
 }
 .pict-fe-searchable-selector-item-active:hover
 {
-	background: var(--theme-color-background-hover, #E4EDD8);
+	background: var(--pfe-bg-hover);
 }
 .pict-fe-searchable-selector-empty
 {
 	padding: 10px;
 	text-align: center;
 	font-size: 11px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 }
 
@@ -2526,7 +2890,7 @@ module.exports = (
 {
 	text-align: center;
 	padding: 24px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 }
 
@@ -2558,12 +2922,12 @@ module.exports = (
 	align-items: center;
 	gap: 4px;
 	padding: 4px 0;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 	transition: background 0.1s;
 }
 .pict-fe-option-entry:hover
 {
-	background: var(--theme-color-background-panel, #FAF8F5);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-option-entry-readonly
 {
@@ -2573,7 +2937,7 @@ module.exports = (
 .pict-fe-option-drag-handle
 {
 	cursor: grab;
-	color: var(--theme-color-text-muted, #C4B9A8);
+	color: var(--pfe-text-muted);
 	font-size: 14px;
 	flex-shrink: 0;
 	width: 16px;
@@ -2589,10 +2953,10 @@ module.exports = (
 	font-family: monospace;
 	font-size: 12px;
 	padding: 3px 6px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 3px;
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
 	width: 30%;
 	min-width: 60px;
 	flex-shrink: 0;
@@ -2601,10 +2965,10 @@ module.exports = (
 {
 	font-size: 12px;
 	padding: 3px 6px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 3px;
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
 	flex: 1;
 	min-width: 0;
 }
@@ -2612,7 +2976,7 @@ module.exports = (
 .pict-fe-option-text-preview
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-option-id-preview
 {
@@ -2630,7 +2994,7 @@ module.exports = (
 {
 	background: none;
 	border: none;
-	color: var(--theme-color-text-muted, #C4B9A8);
+	color: var(--pfe-text-muted);
 	cursor: pointer;
 	font-size: 12px;
 	padding: 2px 4px;
@@ -2645,13 +3009,13 @@ module.exports = (
 }
 .pict-fe-option-remove:hover
 {
-	background: var(--theme-color-background-secondary, #F0ECE4);
-	color: var(--theme-color-status-error, #C0392B);
+	background: var(--pfe-bg-secondary);
+	color: var(--pfe-text-error);
 }
 .pict-fe-option-remove-armed
 {
-	background: var(--theme-color-status-error, #C0392B) !important;
-	color: var(--theme-color-background-panel, #FFF) !important;
+	background: var(--pfe-bg-error) !important;
+	color: var(--pfe-text-on-brand) !important;
 	opacity: 1 !important;
 	font-size: 10px;
 	padding: 2px 6px;
@@ -2663,10 +3027,10 @@ module.exports = (
 	padding: 6px;
 	margin-top: 4px;
 	margin-bottom: 12px;
-	border: 1px dashed var(--theme-color-text-muted, #C4B9A8);
+	border: 1px dashed var(--pfe-border-on-text-muted);
 	border-radius: 4px;
 	background: transparent;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-size: 12px;
 	font-weight: 500;
 	cursor: pointer;
@@ -2674,8 +3038,8 @@ module.exports = (
 }
 .pict-fe-option-add-btn:hover
 {
-	background: var(--theme-color-background-panel, #FAF8F5);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-panel);
+	border-color: var(--pfe-border-brand);
 }
 
 /* ---- Options Tab: Source Toggle ---- */
@@ -2694,7 +3058,7 @@ module.exports = (
 	align-items: center;
 	gap: 3px;
 	font-size: 12px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 }
 .pict-fe-option-source-radio input[type="radio"]
@@ -2706,7 +3070,7 @@ module.exports = (
 /* ---- Options Tab: Named Option Lists ---- */
 .pict-fe-named-list-card
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
 	margin-bottom: 8px;
 	overflow: hidden;
@@ -2718,25 +3082,25 @@ module.exports = (
 	gap: 6px;
 	padding: 8px 10px;
 	cursor: pointer;
-	background: var(--theme-color-background-panel, #FAF8F5);
+	background: var(--pfe-bg-panel);
 	transition: background 0.1s;
 	user-select: none;
 }
 .pict-fe-named-list-header:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 }
 .pict-fe-named-list-header-expanded
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
-	border-left: 3px solid var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-secondary);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
+	border-left: 3px solid var(--pfe-border-brand);
 	padding-left: 7px;
 }
 .pict-fe-named-list-arrow
 {
 	font-size: 12px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	flex-shrink: 0;
 	width: 12px;
 }
@@ -2744,7 +3108,7 @@ module.exports = (
 {
 	font-size: 13px;
 	font-weight: 500;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
@@ -2754,7 +3118,7 @@ module.exports = (
 .pict-fe-named-list-count
 {
 	font-size: 10px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	flex-shrink: 0;
 }
 .pict-fe-named-list-body
@@ -2764,7 +3128,7 @@ module.exports = (
 .pict-fe-named-list-props
 {
 	margin-top: 8px;
-	border-top: 1px dashed var(--theme-color-background-tertiary, #E8E3DA);
+	border-top: 1px dashed var(--pfe-border-on-bg-tertiary);
 	padding-top: 8px;
 }
 .pict-fe-named-list-delete-btn
@@ -2773,25 +3137,25 @@ module.exports = (
 	width: 100%;
 	padding: 5px;
 	margin-top: 8px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 4px;
 	background: transparent;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-size: 11px;
 	cursor: pointer;
 	transition: background 0.1s, color 0.1s, border-color 0.1s;
 }
 .pict-fe-named-list-delete-btn:hover
 {
-	background: color-mix(in srgb, var(--theme-color-status-error, #FDF2F2) 6%, transparent);
-	color: var(--theme-color-status-error, #C0392B);
-	border-color: color-mix(in srgb, var(--theme-color-status-error, #E8A9A9) 40%, transparent);
+	background: color-mix(in srgb, var(--pfe-bg-error-tint) 6%, transparent);
+	color: var(--pfe-text-error);
+	border-color: color-mix(in srgb, var(--pfe-border-error-tint) 40%, transparent);
 }
 .pict-fe-named-list-delete-btn-armed
 {
-	background: var(--theme-color-status-error, #C0392B) !important;
-	color: var(--theme-color-background-panel, #FFF) !important;
-	border-color: var(--theme-color-status-error, #C0392B) !important;
+	background: var(--pfe-bg-error) !important;
+	color: var(--pfe-text-on-brand) !important;
+	border-color: var(--pfe-border-error) !important;
 }
 .pict-fe-named-list-add-btn
 {
@@ -2799,10 +3163,10 @@ module.exports = (
 	width: 100%;
 	padding: 8px;
 	margin-top: 4px;
-	border: 1px dashed var(--theme-color-text-muted, #C4B9A8);
+	border: 1px dashed var(--pfe-border-on-text-muted);
 	border-radius: 4px;
 	background: transparent;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-size: 12px;
 	font-weight: 500;
 	cursor: pointer;
@@ -2810,15 +3174,15 @@ module.exports = (
 }
 .pict-fe-named-list-add-btn:hover
 {
-	background: var(--theme-color-background-panel, #FAF8F5);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-panel);
+	border-color: var(--pfe-border-brand);
 }
 
 /* ---- Data Tab: Section Dividers ---- */
 .pict-fe-data-section-divider
 {
 	height: 1px;
-	background: var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-tertiary);
 	margin: 14px 0;
 }
 
@@ -2831,7 +3195,7 @@ module.exports = (
 /* ---- Data Tab: PickList Cards ---- */
 .pict-fe-picklist-card
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
 	margin-bottom: 8px;
 	overflow: hidden;
@@ -2843,26 +3207,26 @@ module.exports = (
 	gap: 6px;
 	padding: 8px 10px;
 	cursor: pointer;
-	background: var(--theme-color-background-panel, #FAF8F5);
+	background: var(--pfe-bg-panel);
 	transition: background 0.1s;
 	user-select: none;
 }
 .pict-fe-picklist-header:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 }
 .pict-fe-picklist-header-expanded
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
-	border-left: 3px solid var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-secondary);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
+	border-left: 3px solid var(--pfe-border-brand);
 	padding-left: 7px;
 }
 .pict-fe-picklist-name
 {
 	font-size: 13px;
 	font-weight: 500;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
@@ -2881,21 +3245,21 @@ module.exports = (
 	align-items: center;
 	gap: 6px;
 	padding: 6px 8px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 	margin-bottom: 4px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 	cursor: grab;
 	transition: background 0.1s, box-shadow 0.1s;
 }
 .pict-fe-provider-entry:hover
 {
-	background: var(--theme-color-background-panel, #FAF8F5);
-	box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+	background: var(--pfe-bg-panel);
+	box-shadow: 0 1px 3px var(--pfe-shadow);
 }
 .pict-fe-provider-drag-handle
 {
-	color: var(--theme-color-text-muted, #C4B9A8);
+	color: var(--pfe-text-muted);
 	font-size: 14px;
 	cursor: grab;
 	user-select: none;
@@ -2909,7 +3273,7 @@ module.exports = (
 {
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
@@ -2920,7 +3284,7 @@ module.exports = (
 {
 	background: none;
 	border: none;
-	color: var(--theme-color-text-muted, #C4B9A8);
+	color: var(--pfe-text-muted);
 	font-size: 13px;
 	cursor: pointer;
 	padding: 2px 4px;
@@ -2930,17 +3294,17 @@ module.exports = (
 }
 .pict-fe-provider-entry:hover .pict-fe-provider-remove
 {
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-provider-remove:hover
 {
-	color: var(--theme-color-status-error, #C0392B);
-	background: color-mix(in srgb, var(--theme-color-status-error, #FDF2F2) 6%, transparent);
+	color: var(--pfe-text-error);
+	background: color-mix(in srgb, var(--pfe-bg-error-tint) 6%, transparent);
 }
 .pict-fe-provider-remove-armed
 {
-	background: var(--theme-color-status-error, #C0392B) !important;
-	color: var(--theme-color-background-panel, #FFF) !important;
+	background: var(--pfe-bg-error) !important;
+	color: var(--pfe-text-on-brand) !important;
 	font-size: 10px;
 	font-weight: 600;
 }
@@ -2949,10 +3313,10 @@ module.exports = (
 	width: 100%;
 	padding: 6px 8px;
 	margin-top: 4px;
-	border: 1px dashed var(--theme-color-text-muted, #C4B9A8);
+	border: 1px dashed var(--pfe-border-on-text-muted);
 	border-radius: 4px;
 	background: transparent;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	font-size: 12px;
 	font-weight: 500;
 	cursor: pointer;
@@ -2960,14 +3324,14 @@ module.exports = (
 }
 .pict-fe-provider-add-select:hover
 {
-	background: var(--theme-color-background-panel, #FAF8F5);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
+	background: var(--pfe-bg-panel);
+	border-color: var(--pfe-border-brand);
 }
 
 /* ---- Data Tab: Entity Bundle ---- */
 .pict-fe-entity-bundle-card
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
 	margin-bottom: 8px;
 	overflow: hidden;
@@ -2976,26 +3340,26 @@ module.exports = (
 {
 	margin-top: 10px;
 	padding: 10px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 6px;
-	background: var(--theme-color-background-panel, #FAF8F5);
+	background: var(--pfe-bg-panel);
 }
 
 /* ---- Solvers Tab ---- */
 .pict-fe-solvers-health-ok
 {
 	font-size: 12px;
-	color: var(--theme-color-text-secondary, #5B6E5D);
-	background: color-mix(in srgb, var(--theme-color-status-success, #F0F5F0) 8%, transparent);
-	border: 1px solid color-mix(in srgb, var(--theme-color-status-success, #C5D8C5) 30%, transparent);
-	border-left: 3px solid var(--theme-color-status-success, #6B8F5A);
+	color: var(--pfe-text-secondary);
+	background: color-mix(in srgb, var(--pfe-bg-success-tint) 8%, transparent);
+	border: 1px solid color-mix(in srgb, var(--pfe-border-success-tint) 30%, transparent);
+	border-left: 3px solid var(--pfe-border-success);
 	border-radius: 4px;
 	padding: 8px 12px;
 	margin: 8px 0;
 }
 .pict-fe-solvers-health-issue
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 	margin: 6px 0;
 	overflow: hidden;
@@ -3006,16 +3370,16 @@ module.exports = (
 	align-items: center;
 	gap: 8px;
 	padding: 8px 12px;
-	background: var(--theme-color-background-panel, #FFF);
+	background: var(--pfe-bg-panel);
 	cursor: pointer;
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	transition: background 0.15s;
 }
 .pict-fe-solvers-health-issue-header:hover
 {
-	background: var(--theme-color-background-panel, #FAF8F5);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-solvers-health-issue-count
 {
@@ -3028,21 +3392,21 @@ module.exports = (
 	border-radius: 9px;
 	font-size: 10px;
 	font-weight: 700;
-	color: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-on-brand);
 }
 .pict-fe-solvers-health-issue-items
 {
 	padding: 6px 12px 10px 12px;
-	border-top: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
-	background: var(--theme-color-background-panel, #FDFCFA);
+	border-top: 1px solid var(--pfe-border-on-bg-tertiary);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-solvers-health-issue-item
 {
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FAF8F5);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	padding: 3px 6px;
 	margin: 2px 0;
@@ -3054,14 +3418,14 @@ module.exports = (
 }
 .pict-fe-solvers-health-issue-item:hover
 {
-	background: var(--theme-color-background-hover, #EDE8DF);
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	color: var(--theme-color-text-primary, #5B3A20);
+	background: var(--pfe-bg-hover);
+	border-color: var(--pfe-border-brand);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-solvers-health-issue-detail
 {
 	font-size: 10px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	margin: 2px 0 4px 0;
 }
 .pict-fe-solvers-ordinal-group
@@ -3074,10 +3438,10 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	margin-bottom: 6px;
 	padding-bottom: 4px;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 }
 .pict-fe-solvers-seq-entry
 {
@@ -3086,14 +3450,14 @@ module.exports = (
 	gap: 3px;
 	padding: 6px 8px;
 	margin-bottom: 4px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 	transition: border-color 0.15s;
 }
 .pict-fe-solvers-seq-entry:hover
 {
-	border-color: var(--theme-color-border-light, #D4CFC6);
+	border-color: var(--pfe-border-light);
 }
 .pict-fe-solvers-seq-meta
 {
@@ -3101,7 +3465,7 @@ module.exports = (
 	align-items: center;
 	gap: 6px;
 	font-size: 10px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-solvers-badge-section
 {
@@ -3112,9 +3476,9 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
-	background: var(--theme-color-background-secondary, #F5EDE5);
-	color: var(--theme-color-brand-primary, #9E6B47);
-	border: 1px solid var(--theme-color-border-light, #E8DDD0);
+	background: var(--pfe-bg-secondary);
+	color: var(--pfe-text-brand);
+	border: 1px solid var(--pfe-border-light);
 }
 .pict-fe-solvers-badge-group
 {
@@ -3125,16 +3489,16 @@ module.exports = (
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
-	background: color-mix(in srgb, var(--theme-color-status-info, #E8EDF2) 8%, transparent);
-	color: var(--theme-color-status-info, #5A7F9E);
-	border: 1px solid #D0D8E0;
+	background: color-mix(in srgb, var(--pfe-bg-info) 8%, transparent);
+	color: var(--pfe-text-info-tint);
+	border: 1px solid var(--pfe-border-info);
 }
 .pict-fe-solvers-flow-node
 {
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 5px;
 	margin-bottom: 8px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 	overflow: hidden;
 }
 .pict-fe-solvers-flow-hash
@@ -3142,10 +3506,10 @@ module.exports = (
 	font-family: monospace;
 	font-size: 12px;
 	font-weight: 700;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	padding: 8px 12px;
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-secondary);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 }
 .pict-fe-solvers-flow-relationship
 {
@@ -3163,7 +3527,7 @@ module.exports = (
 	flex-shrink: 0;
 	font-size: 13px;
 	line-height: 20px;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 }
 .pict-fe-solvers-flow-label
 {
@@ -3172,7 +3536,7 @@ module.exports = (
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	line-height: 20px;
 	min-width: 80px;
 }
@@ -3191,16 +3555,16 @@ module.exports = (
 	gap: 2px;
 	padding: 8px 12px;
 	margin-bottom: 10px;
-	background: var(--theme-color-background-secondary, #F5F0E8);
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	background: var(--pfe-bg-secondary);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-solver-editor-breadcrumb-item
 {
 	cursor: pointer;
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	padding: 2px 4px;
 	border-radius: 3px;
 	transition: background 0.15s;
@@ -3211,19 +3575,19 @@ module.exports = (
 }
 .pict-fe-solver-editor-breadcrumb-item:hover
 {
-	background: var(--theme-color-background-hover, #EDE8DF);
-	color: var(--theme-color-text-primary, #5B3A20);
+	background: var(--pfe-bg-hover);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-solver-editor-breadcrumb-sep
 {
-	color: var(--theme-color-text-muted, #C4B9A8);
+	color: var(--pfe-text-muted);
 	font-size: 10px;
 	user-select: none;
 }
 .pict-fe-solver-editor-breadcrumb-current
 {
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	padding: 2px 4px;
 	max-width: 280px;
 	overflow: hidden;
@@ -3237,14 +3601,14 @@ module.exports = (
 	gap: 8px;
 	padding: 0 0 10px 0;
 	margin-bottom: 10px;
-	border-bottom: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-tertiary);
 	font-size: 12px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-solver-editor-header-context
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-solver-editor-body
 {
@@ -3260,8 +3624,8 @@ module.exports = (
 	justify-content: flex-end;
 	gap: 8px;
 	padding: 10px 16px;
-	border-top: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
-	background: var(--theme-color-background-panel, #FDFCFA);
+	border-top: 1px solid var(--pfe-border-on-bg-tertiary);
+	background: var(--pfe-bg-panel);
 	position: sticky;
 	bottom: -16px;
 	margin: 0 -16px -16px -16px;
@@ -3271,13 +3635,13 @@ module.exports = (
 {
 	font-size: 12px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	margin-bottom: 8px;
 }
 .pict-fe-solver-editor-list-empty
 {
 	font-size: 12px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	padding: 8px 0;
 }
 /* ---- Add Solver Helper ---- */
@@ -3293,10 +3657,10 @@ module.exports = (
 	flex: 1;
 	min-width: 0;
 	padding: 5px 8px;
-	border: 1px solid var(--theme-color-border-light, #D4CFC6);
+	border: 1px solid var(--pfe-border-light);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FFF);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
 	font-size: 12px;
 	font-family: inherit;
 }
@@ -3307,8 +3671,8 @@ module.exports = (
 .pict-fe-add-solver-helper select:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.1);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 
 /* ---- Import Tab ---- */
@@ -3324,13 +3688,13 @@ module.exports = (
 	margin: 0;
 	font-size: 15px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-import-description
 {
 	margin: 0;
 	font-size: 13px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	line-height: 1.5;
 }
 .pict-fe-import-dropzone
@@ -3340,21 +3704,21 @@ module.exports = (
 	align-items: center;
 	justify-content: center;
 	min-height: 200px;
-	border: 2px dashed var(--theme-color-border-default, #D4C4A8);
+	border: 2px dashed var(--pfe-border-default);
 	border-radius: 8px;
-	background: var(--theme-color-background-panel, #FDFCFA);
+	background: var(--pfe-bg-panel);
 	cursor: pointer;
 	transition: border-color 0.15s, background 0.15s;
 }
 .pict-fe-import-dropzone:hover
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	background: color-mix(in srgb, var(--theme-color-status-warning, #FAF5EE) 8%, transparent);
+	border-color: var(--pfe-border-brand);
+	background: color-mix(in srgb, var(--pfe-bg-warning-tint) 8%, transparent);
 }
 .pict-fe-import-dropzone-active
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	background: color-mix(in srgb, var(--theme-color-status-warning, #F3EAE0) 15%, transparent);
+	border-color: var(--pfe-border-brand);
+	background: color-mix(in srgb, var(--pfe-bg-warning-tint) 15%, transparent);
 	border-style: solid;
 }
 .pict-fe-import-dropzone-content
@@ -3367,7 +3731,7 @@ module.exports = (
 }
 .pict-fe-import-dropzone-icon
 {
-	color: var(--theme-color-border-default, #D4C4A8);
+	color: var(--pfe-text-on-border-default);
 }
 .pict-fe-import-dropzone-icon svg
 {
@@ -3378,12 +3742,12 @@ module.exports = (
 {
 	font-size: 16px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-import-dropzone-subtext
 {
 	font-size: 12px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-import-file-input
 {
@@ -3402,21 +3766,21 @@ module.exports = (
 .pict-fe-import-status-success
 {
 	padding: 10px 14px;
-	background: var(--theme-color-background-hover, #E8F5E9);
-	border: 1px solid #A5D6A7;
+	background: var(--pfe-bg-hover);
+	border: 1px solid var(--pfe-border-success-tint);
 	border-radius: 6px;
 	font-size: 13px;
-	color: var(--theme-color-status-success, #2E7D32);
+	color: var(--pfe-text-success);
 	line-height: 1.5;
 }
 .pict-fe-import-status-error
 {
 	padding: 10px 14px;
-	background: var(--theme-color-background-hover, #FFEBEE);
-	border: 1px solid #EF9A9A;
+	background: var(--pfe-bg-hover);
+	border: 1px solid var(--pfe-border-error-tint);
 	border-radius: 6px;
 	font-size: 13px;
-	color: var(--theme-color-status-error, #C62828);
+	color: var(--pfe-text-error);
 	line-height: 1.5;
 }
 
@@ -3433,10 +3797,10 @@ module.exports = (
 	align-items: center;
 	gap: 6px;
 	padding: 8px 16px;
-	border: 1px solid var(--theme-color-border-default, #D4C4A8);
+	border: 1px solid var(--pfe-border-default);
 	border-radius: 6px;
-	background: var(--theme-color-background-panel, #FDFCFA);
-	color: var(--theme-color-text-primary, #3D3229);
+	background: var(--pfe-bg-panel);
+	color: var(--pfe-text-primary);
 	font-size: 13px;
 	font-weight: 600;
 	cursor: pointer;
@@ -3444,12 +3808,12 @@ module.exports = (
 }
 .pict-fe-export-btn:hover
 {
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	background: color-mix(in srgb, var(--theme-color-status-warning, #FAF5EE) 8%, transparent);
+	border-color: var(--pfe-border-brand);
+	background: color-mix(in srgb, var(--pfe-bg-warning-tint) 8%, transparent);
 }
 .pict-fe-export-btn:active
 {
-	background: color-mix(in srgb, var(--theme-color-status-warning, #F3EAE0) 15%, transparent);
+	background: color-mix(in srgb, var(--pfe-bg-warning-tint) 15%, transparent);
 }
 .pict-fe-export-btn svg
 {
@@ -3458,7 +3822,7 @@ module.exports = (
 .pict-fe-import-export-divider
 {
 	border: none;
-	border-top: 1px solid var(--theme-color-background-hover, #E8E0D4);
+	border-top: 1px solid var(--pfe-border-on-bg-hover);
 	margin: 4px 0;
 }
 
@@ -3482,7 +3846,7 @@ module.exports = (
 	font-size: 13px;
 	font-weight: 500;
 	line-height: 1.4;
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	box-shadow: 0 4px 12px var(--pfe-shadow);
 	cursor: pointer;
 	opacity: 0;
 	transform: translateX(30px);
@@ -3501,13 +3865,13 @@ module.exports = (
 }
 .pict-fe-toast-success
 {
-	background: var(--theme-color-status-success, #2E7D32);
-	color: var(--theme-color-background-panel, #fff);
+	background: var(--pfe-bg-success);
+	color: var(--pfe-text-on-brand);
 }
 .pict-fe-toast-error
 {
-	background: var(--theme-color-status-error, #C62828);
-	color: var(--theme-color-background-panel, #fff);
+	background: var(--pfe-bg-error);
+	color: var(--pfe-text-on-brand);
 }
 
 /* ---- Preview Tab ---- */
@@ -3532,8 +3896,8 @@ module.exports = (
 	font-size: 11px;
 	font-weight: 600;
 	font-family: inherit;
-	color: var(--theme-color-background-panel, #FDFCFA);
-	background: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-on-brand);
+	background: var(--pfe-bg-brand);
 	border: none;
 	border-radius: 4px;
 	cursor: pointer;
@@ -3541,12 +3905,12 @@ module.exports = (
 }
 .pict-fe-preview-load-btn:hover
 {
-	background: #7D5436;
+	background: var(--pfe-bg-brand-hover);
 }
 .pict-fe-preview-status
 {
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-style: italic;
 }
 .pict-fe-preview-viewport
@@ -3554,15 +3918,15 @@ module.exports = (
 	flex: 1;
 	min-height: 0;
 	overflow: auto;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 4px;
-	background: var(--theme-color-background-panel, #FFFFFF);
+	background: var(--pfe-bg-panel);
 	padding: 12px;
 }
 .pict-fe-preview-placeholder
 {
 	font-size: 12px;
-	color: var(--theme-color-text-muted, #B0A89E);
+	color: var(--pfe-text-muted);
 	font-style: italic;
 	text-align: center;
 	padding: 24px 0;
@@ -3570,7 +3934,7 @@ module.exports = (
 .pict-fe-preview-loading
 {
 	font-size: 12px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-style: italic;
 	text-align: center;
 	padding: 24px 0;
@@ -3578,9 +3942,9 @@ module.exports = (
 .pict-fe-preview-error
 {
 	font-size: 12px;
-	color: var(--theme-color-status-error, #991B1B);
-	background: var(--theme-color-background-hover, #FEF2F2);
-	border: 1px solid #FCA5A5;
+	color: var(--pfe-text-error);
+	background: var(--pfe-bg-hover);
+	border: 1px solid var(--pfe-border-error-tint);
 	border-radius: 4px;
 	padding: 10px 12px;
 }
@@ -3601,7 +3965,7 @@ module.exports = (
 	gap: 6px;
 	padding: 4px 12px;
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	flex-shrink: 0;
 }
 .pict-fe-help-nav:empty
@@ -3610,7 +3974,7 @@ module.exports = (
 }
 .pict-fe-help-nav a
 {
-	color: var(--theme-color-brand-primary, #9E6B47);
+	color: var(--pfe-text-brand);
 	text-decoration: none;
 	cursor: pointer;
 }
@@ -3620,7 +3984,7 @@ module.exports = (
 }
 .pict-fe-help-nav .pict-fe-help-nav-sep
 {
-	color: var(--theme-color-border-light, #D4CFC6);
+	color: var(--pfe-text-on-border-light);
 }
 .pict-fe-help-body
 {
@@ -3654,20 +4018,20 @@ module.exports = (
 }
 .pict-fe-help-body .pict-content a
 {
-	color: var(--theme-color-brand-primary, #9E6B47) !important;
+	color: var(--pfe-text-brand) !important;
 }
 .pict-fe-help-body .pict-content code
 {
-	background: var(--theme-color-background-secondary, #F5F0E8) !important;
-	color: var(--theme-color-text-primary, #5B3A20) !important;
+	background: var(--pfe-bg-secondary) !important;
+	color: var(--pfe-text-primary) !important;
 	padding: 1px 5px !important;
 	border-radius: 3px !important;
 	font-size: 12px !important;
 }
 .pict-fe-help-body .pict-content pre
 {
-	background: var(--theme-color-background-secondary, #F5F0E8) !important;
-	color: var(--theme-color-text-primary, #3D3229) !important;
+	background: var(--pfe-bg-secondary) !important;
+	color: var(--pfe-text-primary) !important;
 	padding: 10px 16px !important;
 	border-radius: 4px !important;
 	overflow-x: auto !important;
@@ -3678,8 +4042,8 @@ module.exports = (
 .pict-fe-help-body .pict-content .pict-content-code-wrap pre,
 .pict-fe-help-body .pict-content-code-wrap pre
 {
-	background: var(--theme-color-background-secondary, #F5F0E8) !important;
-	color: var(--theme-color-text-primary, #3D3229) !important;
+	background: var(--pfe-bg-secondary) !important;
+	color: var(--pfe-text-primary) !important;
 	padding: 10px 16px 10px 56px !important;
 	border-radius: 4px !important;
 	overflow-x: auto !important;
@@ -3700,9 +4064,9 @@ module.exports = (
 .pict-fe-help-body .pict-content-code-wrap
 {
 	margin: 8px 0 !important;
-	background: var(--theme-color-background-secondary, #F5F0E8) !important;
+	background: var(--pfe-bg-secondary) !important;
 	border-radius: 4px !important;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA) !important;
+	border: 1px solid var(--pfe-border-on-bg-tertiary) !important;
 	overflow-x: auto !important;
 	overflow-y: hidden !important;
 	font-size: 12px !important;
@@ -3711,35 +4075,35 @@ module.exports = (
 .pict-fe-help-body .pict-content .pict-content-code-wrap .pict-content-code-line-numbers,
 .pict-fe-help-body .pict-content-code-wrap .pict-content-code-line-numbers
 {
-	background: var(--theme-color-background-hover, #EDE8DF) !important;
-	border-right: 1px solid #DDD6CB !important;
-	color: #A09589 !important;
+	background: var(--pfe-bg-hover) !important;
+	border-right: 1px solid var(--pfe-code-gutter-border) !important;
+	color: var(--pfe-code-linenumber) !important;
 	font-size: 12px !important;
 	line-height: 1.5 !important;
 	padding: 10px 0 !important;
 }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .keyword,
-.pict-fe-help-body .pict-content-code-wrap .keyword { color: #A626A4 !important; }
+.pict-fe-help-body .pict-content-code-wrap .keyword { color: var(--pfe-syntax-keyword) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .string,
-.pict-fe-help-body .pict-content-code-wrap .string { color: var(--theme-color-status-success, #50A14F) !important; }
+.pict-fe-help-body .pict-content-code-wrap .string { color: var(--pfe-syntax-string) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .number,
-.pict-fe-help-body .pict-content-code-wrap .number { color: var(--theme-color-status-warning, #986801) !important; }
+.pict-fe-help-body .pict-content-code-wrap .number { color: var(--pfe-syntax-number) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .comment,
-.pict-fe-help-body .pict-content-code-wrap .comment { color: #A0A1A7 !important; font-style: italic !important; }
+.pict-fe-help-body .pict-content-code-wrap .comment { color: var(--pfe-syntax-comment) !important; font-style: italic !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .operator,
-.pict-fe-help-body .pict-content-code-wrap .operator { color: var(--theme-color-status-info, #0184BC) !important; }
+.pict-fe-help-body .pict-content-code-wrap .operator { color: var(--pfe-syntax-operator) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .punctuation,
-.pict-fe-help-body .pict-content-code-wrap .punctuation { color: var(--theme-color-text-primary, #3D3229) !important; }
+.pict-fe-help-body .pict-content-code-wrap .punctuation { color: var(--pfe-syntax-punctuation) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .function-name,
-.pict-fe-help-body .pict-content-code-wrap .function-name { color: var(--theme-color-brand-primary, #4078F2) !important; }
+.pict-fe-help-body .pict-content-code-wrap .function-name { color: var(--pfe-syntax-function) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .property,
-.pict-fe-help-body .pict-content-code-wrap .property { color: var(--theme-color-status-error, #E45649) !important; }
+.pict-fe-help-body .pict-content-code-wrap .property { color: var(--pfe-syntax-property) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .tag,
-.pict-fe-help-body .pict-content-code-wrap .tag { color: var(--theme-color-status-error, #E45649) !important; }
+.pict-fe-help-body .pict-content-code-wrap .tag { color: var(--pfe-syntax-tag) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .attr-name,
-.pict-fe-help-body .pict-content-code-wrap .attr-name { color: var(--theme-color-status-warning, #986801) !important; }
+.pict-fe-help-body .pict-content-code-wrap .attr-name { color: var(--pfe-syntax-attrname) !important; }
 .pict-fe-help-body .pict-content .pict-content-code-wrap .attr-value,
-.pict-fe-help-body .pict-content-code-wrap .attr-value { color: var(--theme-color-status-success, #50A14F) !important; }
+.pict-fe-help-body .pict-content-code-wrap .attr-value { color: var(--pfe-syntax-attrvalue) !important; }
 
 /* ---- JSON Tab Header ---- */
 .pict-fe-json-header
@@ -3747,8 +4111,8 @@ module.exports = (
 	display: flex;
 	align-items: center;
 	padding: 6px 12px;
-	border-bottom: 1px solid var(--theme-color-background-hover, #E8E0D4);
-	background: var(--theme-color-background-panel, #FDFCFA);
+	border-bottom: 1px solid var(--pfe-border-on-bg-hover);
+	background: var(--pfe-bg-panel);
 }
 .pict-fe-json-readonly-label
 {
@@ -3756,7 +4120,7 @@ module.exports = (
 	align-items: center;
 	gap: 6px;
 	font-size: 12px;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 	cursor: pointer;
 	user-select: none;
 }
@@ -3772,13 +4136,13 @@ module.exports = (
 	align-items: center;
 	justify-content: space-between;
 	padding: 8px 12px;
-	border-bottom: 1px solid var(--theme-color-background-hover, #E8E0D4);
+	border-bottom: 1px solid var(--pfe-border-on-bg-hover);
 }
 .pict-fe-overview-title
 {
 	font-size: 15px;
 	font-weight: 600;
-	color: var(--theme-color-text-primary, #3D3229);
+	color: var(--pfe-text-primary);
 }
 .pict-fe-overview-labels
 {
@@ -3793,7 +4157,7 @@ module.exports = (
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	padding: 0 6px;
 }
 .pict-fe-overview-actions-spacer
@@ -3818,7 +4182,7 @@ module.exports = (
 }
 .pict-fe-overview-row:hover
 {
-	background: var(--theme-color-background-secondary, #F5F0E8);
+	background: var(--pfe-bg-secondary);
 }
 .pict-fe-overview-section
 {
@@ -3848,14 +4212,14 @@ module.exports = (
 .pict-fe-overview-depth-1
 {
 	width: 20px;
-	border-left: 2px solid var(--theme-color-background-hover, #E8E0D4);
+	border-left: 2px solid var(--pfe-border-on-bg-hover);
 	margin-left: 6px;
 	height: 100%;
 }
 .pict-fe-overview-depth-2
 {
 	width: 40px;
-	border-left: 2px solid var(--theme-color-background-hover, #E8E0D4);
+	border-left: 2px solid var(--pfe-border-on-bg-hover);
 	margin-left: 26px;
 	height: 100%;
 }
@@ -3869,12 +4233,12 @@ module.exports = (
 .pict-fe-overview-field
 {
 	padding: 3px 6px;
-	border: 1px solid var(--theme-color-background-tertiary, #E8E3DA);
+	border: 1px solid var(--pfe-border-on-bg-tertiary);
 	border-radius: 3px;
 	font-size: 12px;
 	font-family: inherit;
-	color: var(--theme-color-text-primary, #3D3229);
-	background: var(--theme-color-background-panel, #FFF);
+	color: var(--pfe-text-primary);
+	background: var(--pfe-bg-panel);
 	box-sizing: border-box;
 	transition: border-color 0.15s, box-shadow 0.15s;
 	min-width: 0;
@@ -3882,8 +4246,8 @@ module.exports = (
 .pict-fe-overview-field:focus
 {
 	outline: none;
-	border-color: var(--theme-color-brand-primary, #9E6B47);
-	box-shadow: 0 0 0 2px rgba(158, 107, 71, 0.15);
+	border-color: var(--pfe-border-brand);
+	box-shadow: 0 0 0 2px var(--pfe-focus-ring);
 }
 .pict-fe-overview-field-name
 {
@@ -3896,7 +4260,7 @@ module.exports = (
 	min-width: 60px;
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 }
 .pict-fe-overview-field-address
 {
@@ -3904,7 +4268,7 @@ module.exports = (
 	min-width: 80px;
 	font-family: monospace;
 	font-size: 11px;
-	color: var(--theme-color-status-success, #6B7F5A);
+	color: var(--pfe-text-success);
 }
 .pict-fe-overview-actions
 {
@@ -3916,12 +4280,12 @@ module.exports = (
 {
 	padding: 24px;
 	text-align: center;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-size: 13px;
 }
 .pict-fe-overview-empty-inline
 {
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	font-size: 12px;
 	font-style: italic;
 	padding: 4px 0;
@@ -3937,7 +4301,7 @@ module.exports = (
 .pict-fe-overview-row-separator-label
 {
 	font-size: 10px;
-	color: var(--theme-color-text-secondary, #8A7F72);
+	color: var(--pfe-text-secondary);
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 	white-space: nowrap;
@@ -3947,7 +4311,7 @@ module.exports = (
 {
 	flex: 1;
 	height: 1px;
-	background: #D4C9B8;
+	background: var(--pfe-border-on-bg-tertiary);
 	border: none;
 }
 .pict-fe-overview-column
@@ -3960,8 +4324,8 @@ module.exports = (
 	font-size: 10px;
 	padding: 1px 6px;
 	border-radius: 3px;
-	background: var(--theme-color-background-hover, #E8E0D4);
-	color: #6B5D4F;
+	background: var(--pfe-bg-hover);
+	color: var(--pfe-text-secondary);
 	white-space: nowrap;
 	font-weight: 600;
 }
@@ -3986,11 +4350,11 @@ module.exports = (
 }
 .pict-fe-overview-drop-above
 {
-	border-top: 2px solid var(--theme-color-status-warning, #8B6914);
+	border-top: 2px solid var(--pfe-border-warning);
 }
 .pict-fe-overview-drop-below
 {
-	border-bottom: 2px solid var(--theme-color-status-warning, #8B6914);
+	border-bottom: 2px solid var(--pfe-border-warning);
 }
 `,
 
