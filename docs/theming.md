@@ -64,6 +64,10 @@ Three reasons for the indirection:
 - `-on-<family>-<name>` marks a cross-family use, where a colour from one
   family is used in another role: `border-on-bg-tertiary` is a border drawn in
   the tertiary *background* colour.
+  That pairing holds in light mode only. In the dark blocks each one reads the
+  host token of its own role (`border-on-bg-tertiary` reads `border-light`),
+  because a host's dark border colour used as text, or its dark-mode text colour
+  used as a fill, has almost no contrast.
 - `text-on-brand` is the label colour for text sitting on a brand-coloured
   fill. It is deliberately **not** `background-panel`, which is what it used to
   chain to — that rendered dark text on a brand button under a dark host theme.
