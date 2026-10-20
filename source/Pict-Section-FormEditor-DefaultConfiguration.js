@@ -185,12 +185,12 @@ module.exports = (
 	--pfe-bg-error-tint:             var(--theme-color-status-error-background, #362F2F);
 	--pfe-bg-success:                var(--theme-color-status-success, #003400);
 	--pfe-bg-success-tint:           var(--theme-color-status-success-background, #203522);
-	--pfe-bg-on-text-muted:          var(--theme-color-text-muted, #302920);
+	--pfe-bg-on-text-muted:          var(--theme-color-background-tertiary, #302920);
 	--pfe-bg-warning:                var(--theme-color-status-warning, #412300);
 	--pfe-bg-warning-tint:           var(--theme-color-status-warning-background, #352F29);
 	--pfe-bg-info:                   var(--theme-color-status-info-background, #272A2E);
 	--pfe-bg-accent:                 var(--theme-color-brand-accent-background, #2D2831);
-	--pfe-bg-on-text-secondary:      var(--theme-color-text-secondary, #30291F);
+	--pfe-bg-on-text-secondary:      var(--theme-color-background-tertiary, #30291F);
 
 	/* Text */
 	--pfe-text-primary:              var(--theme-color-text-primary, #CBBFB5);
@@ -200,33 +200,33 @@ module.exports = (
 	--pfe-text-error-tint:           var(--theme-color-status-error, #D7BABA);
 	--pfe-text-muted:                var(--theme-color-text-muted, #C7C0B7);
 	--pfe-text-success:              var(--theme-color-status-success, #B5C7A4);
-	--pfe-text-on-border-default:    var(--theme-color-border-default, #C6C1B2);
+	--pfe-text-on-border-default:    var(--theme-color-text-muted, #C6C1B2);
 	--pfe-text-info:                 var(--theme-color-status-info, #AAC5D2);
 	--pfe-text-info-tint:            var(--theme-color-status-info, #A6C4E1);
 	--pfe-text-brand:                var(--theme-color-brand-primary, #E9B795);
 	--pfe-text-warning:              var(--theme-color-status-warning, #FFAC7E);
 	--pfe-text-warning-tint:         var(--theme-color-status-warning, #E5B98F);
-	--pfe-text-on-border-light:      var(--theme-color-border-light, #C5C0B9);
+	--pfe-text-on-border-light:      var(--theme-color-text-muted, #C5C0B9);
 	--pfe-text-accent:               var(--theme-color-brand-accent, #E2B2DD);
 
 	/* Borders */
-	--pfe-border-on-bg-tertiary:     var(--theme-color-background-tertiary, #4E4B44);
+	--pfe-border-on-bg-tertiary:     var(--theme-color-border-light, #4E4B44);
 	--pfe-border-brand:              var(--theme-color-brand-primary, #6B4224);
 	--pfe-border-default:            var(--theme-color-border-default, #4F4B3E);
-	--pfe-border-on-text-muted:      var(--theme-color-text-muted, #524A3D);
+	--pfe-border-on-text-muted:      var(--theme-color-border-default, #524A3D);
 	--pfe-border-brand-hover:        var(--theme-color-brand-primary-hover, #694228);
 	--pfe-border-error:              var(--theme-color-status-error, #832F30);
 	--pfe-border-error-tint:         var(--theme-color-status-error-background, #664242);
-	--pfe-border-on-bg-secondary:    var(--theme-color-background-secondary, #4E4B45);
+	--pfe-border-on-bg-secondary:    var(--theme-color-border-light, #4E4B45);
 	--pfe-border-success:            var(--theme-color-status-success, #355328);
 	--pfe-border-success-tint:       var(--theme-color-status-success, #005C05);
 	--pfe-border-light:              var(--theme-color-border-light, #4F4B44);
 	--pfe-border-warning:            var(--theme-color-status-warning, #624700);
 	--pfe-border-warning-tint:       var(--theme-color-status-warning, #67441E);
-	--pfe-border-on-bg-hover:        var(--theme-color-background-hover, #504B42);
+	--pfe-border-on-bg-hover:        var(--theme-color-border-light, #504B42);
 	--pfe-border-info:               var(--theme-color-status-info, #2D4F68);
 	--pfe-border-accent:             var(--theme-color-brand-accent, #673C65);
-	--pfe-border-on-text-secondary:  var(--theme-color-text-secondary, #534A3F);
+	--pfe-border-on-text-secondary:  var(--theme-color-border-default, #534A3F);
 
 	/* Icon paint */
 	--pfe-icon-primary:              var(--theme-color-text-primary, #E6E9EE);
@@ -291,12 +291,12 @@ module.exports = (
 		--pfe-bg-error-tint:             var(--theme-color-status-error-background, #362F2F);
 		--pfe-bg-success:                var(--theme-color-status-success, #003400);
 		--pfe-bg-success-tint:           var(--theme-color-status-success-background, #203522);
-		--pfe-bg-on-text-muted:          var(--theme-color-text-muted, #302920);
+		--pfe-bg-on-text-muted:          var(--theme-color-background-tertiary, #302920);
 		--pfe-bg-warning:                var(--theme-color-status-warning, #412300);
 		--pfe-bg-warning-tint:           var(--theme-color-status-warning-background, #352F29);
 		--pfe-bg-info:                   var(--theme-color-status-info-background, #272A2E);
 		--pfe-bg-accent:                 var(--theme-color-brand-accent-background, #2D2831);
-		--pfe-bg-on-text-secondary:      var(--theme-color-text-secondary, #30291F);
+		--pfe-bg-on-text-secondary:      var(--theme-color-background-tertiary, #30291F);
 	
 		/* Text */
 		--pfe-text-primary:              var(--theme-color-text-primary, #CBBFB5);
@@ -306,33 +306,33 @@ module.exports = (
 		--pfe-text-error-tint:           var(--theme-color-status-error, #D7BABA);
 		--pfe-text-muted:                var(--theme-color-text-muted, #C7C0B7);
 		--pfe-text-success:              var(--theme-color-status-success, #B5C7A4);
-		--pfe-text-on-border-default:    var(--theme-color-border-default, #C6C1B2);
+		--pfe-text-on-border-default:    var(--theme-color-text-muted, #C6C1B2);
 		--pfe-text-info:                 var(--theme-color-status-info, #AAC5D2);
 		--pfe-text-info-tint:            var(--theme-color-status-info, #A6C4E1);
 		--pfe-text-brand:                var(--theme-color-brand-primary, #E9B795);
 		--pfe-text-warning:              var(--theme-color-status-warning, #FFAC7E);
 		--pfe-text-warning-tint:         var(--theme-color-status-warning, #E5B98F);
-		--pfe-text-on-border-light:      var(--theme-color-border-light, #C5C0B9);
+		--pfe-text-on-border-light:      var(--theme-color-text-muted, #C5C0B9);
 		--pfe-text-accent:               var(--theme-color-brand-accent, #E2B2DD);
 	
 		/* Borders */
-		--pfe-border-on-bg-tertiary:     var(--theme-color-background-tertiary, #4E4B44);
+		--pfe-border-on-bg-tertiary:     var(--theme-color-border-light, #4E4B44);
 		--pfe-border-brand:              var(--theme-color-brand-primary, #6B4224);
 		--pfe-border-default:            var(--theme-color-border-default, #4F4B3E);
-		--pfe-border-on-text-muted:      var(--theme-color-text-muted, #524A3D);
+		--pfe-border-on-text-muted:      var(--theme-color-border-default, #524A3D);
 		--pfe-border-brand-hover:        var(--theme-color-brand-primary-hover, #694228);
 		--pfe-border-error:              var(--theme-color-status-error, #832F30);
 		--pfe-border-error-tint:         var(--theme-color-status-error-background, #664242);
-		--pfe-border-on-bg-secondary:    var(--theme-color-background-secondary, #4E4B45);
+		--pfe-border-on-bg-secondary:    var(--theme-color-border-light, #4E4B45);
 		--pfe-border-success:            var(--theme-color-status-success, #355328);
 		--pfe-border-success-tint:       var(--theme-color-status-success, #005C05);
 		--pfe-border-light:              var(--theme-color-border-light, #4F4B44);
 		--pfe-border-warning:            var(--theme-color-status-warning, #624700);
 		--pfe-border-warning-tint:       var(--theme-color-status-warning, #67441E);
-		--pfe-border-on-bg-hover:        var(--theme-color-background-hover, #504B42);
+		--pfe-border-on-bg-hover:        var(--theme-color-border-light, #504B42);
 		--pfe-border-info:               var(--theme-color-status-info, #2D4F68);
 		--pfe-border-accent:             var(--theme-color-brand-accent, #673C65);
-		--pfe-border-on-text-secondary:  var(--theme-color-text-secondary, #534A3F);
+		--pfe-border-on-text-secondary:  var(--theme-color-border-default, #534A3F);
 	
 		/* Icon paint */
 		--pfe-icon-primary:              var(--theme-color-text-primary, #E6E9EE);

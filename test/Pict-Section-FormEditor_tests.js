@@ -4819,6 +4819,34 @@ suite
 				);
 				test
 				(
+					'Should read a host token of the alias\'s own role in both dark blocks',
+					function ()
+					{
+						// A cross-family alias (bg-on-text-*, text-on-border-*, border-on-bg-*)
+						// keeps its light-mode source token, but in dark a host's colours are
+						// tuned per role: its border colour as text, or its text colour as a
+						// fill, lands at near-zero contrast.
+						let tmpFamily = { bg: 'background-', text: 'text-', border: 'border-' };
+						let tmpParts = fSplitCSS().Layer.split(/(?=\[data-theme="dark"\]|@media)/);
+						let tmpWrong = [];
+						for (let i = 1; i < tmpParts.length; i++)
+						{
+							let tmpMatch;
+							let tmpExpression = /--pfe-(bg|text|border)-on-([a-z0-9-]+)\s*:\s*var\(--theme-color-([a-z0-9-]+)/g;
+							while ((tmpMatch = tmpExpression.exec(tmpParts[i])) !== null)
+							{
+								if (tmpMatch[3].indexOf(tmpFamily[tmpMatch[1]]) !== 0)
+								{
+									tmpWrong.push(tmpMatch[1] + '-on-' + tmpMatch[2] + ' -> ' + tmpMatch[3]);
+								}
+							}
+						}
+						Expect(tmpParts.length).to.equal(3);
+						Expect(tmpWrong, 'dark aliases reading another role\'s host token').to.deep.equal([]);
+					}
+				);
+				test
+				(
 					'Should declare every alias that any rule references',
 					function ()
 					{
